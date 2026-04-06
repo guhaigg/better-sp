@@ -1,13 +1,13 @@
 ---
 name: engineering-knowledge-garden
-description: Use when durable project knowledge should be looked up, captured after real work, or pruned without bloating AGENTS.md, chat history, or ad-hoc memory files
+description: Use when durable project knowledge should be looked up, archived from research, distilled after real work, or pruned without bloating AGENTS.md, chat history, or ad-hoc memory files
 ---
 
 # Engineering Knowledge Garden
 
 Keep durable engineering knowledge in a searchable garden instead of dumping everything into `AGENTS.md`.
 
-**Core principle:** selective lookup, batched capture, validated entries.
+**Core principle:** bounded lookup, archived research, distilled evergreen entries.
 
 ## What This Skill Is For
 
@@ -28,9 +28,18 @@ Do **not** use it for:
 ## Storage Model
 
 - **Project-local read/write root:** `docs/engineering-knowledge-garden/`
+- **Structured archive:** `docs/engineering-knowledge-garden/archive/landscapes/`
 - **Optional global read-only root:** `$SUPERPOWERS_GLOBAL_GARDEN`
 
 Normal task work writes only to the project-local garden. Global knowledge should be promoted intentionally.
+
+## The Loop
+
+1. **Lookup** only the narrow entries relevant to planning, execution, refactor, or review
+2. **Archive** full external research or comparison notes without polluting downstream prompts
+3. **Distill** only proven lessons from those archives into evergreen entries
+4. **Capture** new durable lessons from implementation work
+5. **Validate / audit / prune** on a maintenance cadence
 
 ## Modes
 
@@ -54,11 +63,41 @@ node skills/engineering-knowledge-garden/scripts/garden.cjs search --text "share
 
 The tool searches the local garden first, then merges optional global read-only results.
 
-### 2. Capture
+### 2. Archive research first
 
-Capture only durable lessons from real work. Prefer batching near branch finish, PR prep, or task-batch completion.
+When external comparison produces a full brief, save it as an archive artifact instead of pretending it is already evergreen knowledge.
 
-Default flow:
+Run:
+
+```bash
+node skills/engineering-knowledge-garden/scripts/garden.cjs archive-create --kind landscape-brief --title "Multi-agent routing landscape"
+node skills/engineering-knowledge-garden/scripts/garden.cjs search-archive --kind landscape-brief --text "routing"
+```
+
+Archive briefs are for:
+- human review
+- later retrieval
+- future distillation
+
+They are **not** automatically loaded into downstream prompts.
+
+### 3. Distill archive into evergreen knowledge
+
+Only distill when a lesson proved durable enough to reuse:
+
+```bash
+node skills/engineering-knowledge-garden/scripts/garden.cjs distill \
+  --archive docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-routing-landscape.md \
+  --type pattern \
+  --title "Degrade shared write scope to one writer plus readers"
+node skills/engineering-knowledge-garden/scripts/garden.cjs validate docs/engineering-knowledge-garden/ --include-archive
+```
+
+`distill` creates a draft evergreen entry and records the linkage back to the archive brief.
+
+### 4. Capture from real work
+
+Capture only durable lessons from implementation. Prefer batching near branch finish, PR prep, or task-batch completion.
 
 ```bash
 node skills/engineering-knowledge-garden/scripts/garden.cjs create --type pattern --title "Consolidate auth parsing in shared core"
@@ -69,27 +108,29 @@ node skills/engineering-knowledge-garden/scripts/garden.cjs validate docs/engine
 Use the template at:
 - `skills/engineering-knowledge-garden/references/entry-template.md`
 
-### 3. Prune
+### 5. Validate and prune
 
-Prune duplicates, stale entries, or promotion candidates **outside** the hot path of feature work when possible.
-
-Do not stop a normal task just to garden unless:
-- the garden is actively misleading the current task
-- the human explicitly asked for cleanup
-
-## Validation
-
-Every entry must validate before it counts as trusted knowledge.
+Prune duplicates, stale entries, or archive backlog **outside** the hot path of feature work when possible.
 
 Run:
 
 ```bash
-node skills/engineering-knowledge-garden/scripts/garden.cjs validate docs/engineering-knowledge-garden/
+node skills/engineering-knowledge-garden/scripts/garden.cjs validate docs/engineering-knowledge-garden/ --include-archive
+node skills/engineering-knowledge-garden/scripts/garden.cjs audit --days 180 --threshold 0.5 --archive-days 30
 ```
+
+Do not stop a normal task just to garden unless:
+- the garden is actively misleading the current task
+- the archive backlog is hiding reusable knowledge you need right now
+- the human explicitly asked for cleanup
+
+## Validation
+
+Every evergreen entry must validate before it counts as trusted knowledge. Archive briefs should also validate when they are part of a research->distill workflow.
 
 Validation checks:
 - required frontmatter keys
-- allowed `type`
+- allowed `type` / `kind`
 - allowed `status`
 - list fields
 - required body sections
@@ -104,8 +145,9 @@ Broken YAML or malformed entries are not “good enough.” Fix them.
 Do not query the garden for every tiny feature idea.
 
 ### Project Landscape Analysis
-- archive the full landscape brief under `docs/engineering-knowledge-garden/archive/`
-- only promote distilled lessons later if they proved durable
+- archive the full landscape brief under `docs/engineering-knowledge-garden/archive/landscapes/`
+- pass only the compressed guidance brief downstream
+- distill only the lessons that proved durable after real implementation or review
 
 ### Refactor Mode
 - lookup patterns, pitfalls, reusable assets, verification recipes
@@ -124,18 +166,21 @@ Do not query the garden for every tiny feature idea.
 
 ### Finishing Work
 - batch-capture durable lessons before closing the branch, if any were produced
+- if research archives generated real reusable lessons, distill them before the context goes cold
 
 ## Red Flags
 
 **Never:**
 - stuff the garden with raw logs
 - capture a “lesson” with no evidence
+- promote every archive note straight into evergreen memory
 - load the entire garden into context
 - let malformed frontmatter silently accumulate
 - block simple tasks on heavy garden rituals
 
 **Always:**
 - keep lookup bounded
-- keep capture distilled
+- archive full research before reuse
+- keep distilled entries small and triggerable
 - validate entries
 - prefer project-local writes

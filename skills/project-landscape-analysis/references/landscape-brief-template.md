@@ -1,20 +1,31 @@
+---
+title: Replace me
+kind: landscape-brief
+status: archived
+tags: []
+sources: []
+distilled_into: []
+created_at: 2026-04-06
+last_reviewed: 2026-04-06
+---
+
 # Landscape Brief
 
-**Goal:** What decision or project shape needs external comparison?
+## Goal
 
-**Bypass Check:** Why was external research necessary instead of a de facto-standard summary?
+- What decision or subsystem needs external comparison?
 
-**Search Strategy:**
+## Bypass Check
+
+- Why was external research necessary instead of a de facto standard brief?
+
+## Search Strategy
+
 - Query style:
 - Sources prioritized:
 - Why these sources:
 
-**Candidate Systems:**
-1. [Name / link]
-2. [Name / link]
-3. [Name / link]
-
-## Comparison Notes
+## Candidate Comparison
 
 ### Candidate 1: [Name]
 - Problem solved:
@@ -34,20 +45,30 @@
 - Borrow:
 - Avoid:
 
-## Recommendation
+## Downstream Guidance
 
 ### Borrow
+
 - 
 
 ### Avoid
+
 - 
 
 ### Preferred Shape
+
 - 
 
 ### Unknowns
+
 - 
 
 ### Confidence
+
 - High / Medium / Low
 
+## Distill Candidates
+
+- [ ] Pattern:
+- [ ] Pitfall:
+- [ ] Decision:

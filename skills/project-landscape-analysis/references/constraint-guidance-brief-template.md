@@ -1,6 +1,6 @@
 # Constraint & Guidance Brief
 
-**Research File:** `docs/engineering-knowledge-garden/archive/YYYY-MM-DD-<topic>-landscape.md`
+**Research File:** `docs/engineering-knowledge-garden/archive/landscapes/YYYY-MM-DD-<topic>.md`
 
 ## Borrow
 
@@ -17,4 +17,3 @@
 ## Unknowns
 
 - 
-

@@ -91,6 +91,7 @@ docs/engineering-knowledge-garden/
   reusable-assets/
   agent-optimizations/
   archive/
+    landscapes/
 ```
 
 Optional global read-only root:
@@ -146,6 +147,39 @@ Body sections:
 5. **Verification**
 6. **Related entries**
 
+## Archive Format
+
+Archived research should stay structured so it can later be distilled without re-reading the whole internet.
+
+Current implemented archive kind:
+
+- `landscape-brief`
+
+Recommended frontmatter:
+
+```yaml
+---
+title: Multi-agent routing landscape
+kind: landscape-brief
+status: archived
+tags: [routing, orchestration]
+sources:
+  - https://example.com/post
+distilled_into: []
+created_at: 2026-04-06
+last_reviewed: 2026-04-06
+---
+```
+
+Recommended body sections:
+
+1. **Goal**
+2. **Bypass Check**
+3. **Search Strategy**
+4. **Candidate Comparison**
+5. **Downstream Guidance**
+6. **Distill Candidates**
+
 ## Lookup Layer
 
 Lookup cannot rely on “read the index and hope.” Phase 1 needs an actual tool.
@@ -157,7 +191,10 @@ Provide a lightweight local search tool:
 ```text
 garden search --tag auth --scope src/auth --type pattern
 garden search --text "shared write scope" --type pitfall
-garden validate docs/engineering-knowledge-garden/
+garden search-archive --kind landscape-brief --text "routing"
+garden archive-create --kind landscape-brief --title "Multi-agent routing landscape"
+garden distill --archive docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-routing.md --type pattern --title "One writer plus readers"
+garden validate docs/engineering-knowledge-garden/ --include-archive
 ```
 
 Minimum search filters:
@@ -213,6 +250,16 @@ Capture only when knowledge is:
 - backed by actual work, validation, or review
 - worth the token and maintenance cost
 
+### Archive then Distill
+
+External research should follow a separate path from evergreen knowledge:
+
+1. archive the full brief
+2. hand off only the compressed guidance brief
+3. distill only the lessons that survive implementation or review pressure
+
+This avoids turning exploratory research into fake “memory”.
+
 ### Lookup
 
 Before planning or implementing, load only entries relevant to:
@@ -238,6 +285,7 @@ Phase 2 should introduce a scheduled or explicitly-invoked gardener workflow tha
 
 - scans for duplicates or near-duplicates
 - flags stale entries
+- flags archive briefs with no distillation follow-through
 - proposes merges / archival changes
 - prepares a reviewable diff or PR instead of silently mutating history
 
@@ -254,6 +302,14 @@ Phase 1 must include schema validation for:
 - allowed `status`
 - list-shaped fields (`tags`, `triggers`, `scope`, `evidence`, `supersedes`)
 - required body sections
+
+Archive validation should additionally cover:
+
+- required archive keys
+- allowed `kind`
+- allowed archive `status`
+- archive list fields (`tags`, `sources`, `distilled_into`)
+- required archive sections for `landscape-brief`
 
 Invalid entries should fail validation and be fixed before they are treated as searchable knowledge.
 

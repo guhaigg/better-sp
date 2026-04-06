@@ -7,7 +7,7 @@ description: Use when a greenfield project, new subsystem, or high-cost architec
 
 Study the surrounding landscape **before** locking a design when external comparison is genuinely useful.
 
-**Core principle:** bypass trivial cases, prefer human-written teardowns over raw repos, and pass only a compressed guidance card downstream.
+**Core principle:** bypass trivial cases, prefer human-written teardowns over raw repos, archive the full brief, and pass only a compressed guidance card downstream.
 
 ## When to Use
 
@@ -96,12 +96,23 @@ If a dimension is unknown, mark it `unknown`.
 
 Save the full research artifact to:
 
-`docs/engineering-knowledge-garden/archive/YYYY-MM-DD-<topic>-landscape.md`
+`docs/engineering-knowledge-garden/archive/landscapes/YYYY-MM-DD-<topic>.md`
 
 Use the template in:
 - `references/landscape-brief-template.md`
 
-This is for human review and later retrieval, not for stuffing into downstream prompts.
+Prefer creating the file through the garden CLI first:
+
+```bash
+node skills/engineering-knowledge-garden/scripts/garden.cjs archive-create --kind landscape-brief --title "Multi-agent routing landscape"
+```
+
+The full brief is for:
+- human review
+- later retrieval
+- future distillation
+
+It is **not** the thing you hand to downstream execution skills.
 
 ### 2. Constraint & Guidance Brief
 
@@ -117,6 +128,19 @@ Use the template in:
 
 This is the only part that should flow into `brainstorming` or `writing-plans`.
 
+### 3. Distilled Garden Entries
+
+Later — after implementation, review, or repeated reuse proves something durable — distill the archive into evergreen entries:
+
+```bash
+node skills/engineering-knowledge-garden/scripts/garden.cjs distill \
+  --archive docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-routing.md \
+  --type pattern \
+  --title "Degrade shared write scope to one writer plus readers"
+```
+
+Do **not** promote every research note immediately.
+
 ## Compression Rule
 
 Never hand the entire landscape brief to downstream implementation skills unless the human explicitly asks for it.
@@ -130,17 +154,17 @@ Not:
 - big comparison matrices
 - raw notes from every candidate
 
-## Knowledge Garden Integration
+## Research -> Archive -> Distill Loop
 
 Treat landscape analysis as the **external intake** side of the knowledge loop:
 
-- full brief → `engineering-knowledge-garden/archive/`
-- distilled durable lessons later become:
-  - `decision`
-  - `pattern`
-  - `pitfall`
+1. external research
+2. archived full brief
+3. compressed guidance brief for design/planning
+4. real implementation or review pressure
+5. distilled evergreen garden entries only for what proved durable
 
-Do not immediately promote every research note into evergreen knowledge.
+That keeps research retrievable without polluting the working memory layer.
 
 ## Red Flags
 
@@ -149,11 +173,13 @@ Do not immediately promote every research note into evergreen knowledge.
 - fabricate architecture details from README marketing text
 - pass giant research artifacts into downstream prompts
 - trigger external search for a trivial or standard problem
+- auto-promote unproven research into evergreen memory
 
 **Always:**
 - do the bypass check first
 - prefer secondary sources
 - keep repo inspection bounded
+- archive the full brief
 - compress the handoff
 - preserve uncertainty when evidence is incomplete
 
@@ -161,4 +187,4 @@ Do not immediately promote every research note into evergreen knowledge.
 
 - **superpowers:brainstorming** - use after this when behavior/spec is still unclear
 - **superpowers:writing-plans** - use after this when the target shape is already clear enough to plan
-- **superpowers:engineering-knowledge-garden** - archive full research and later distill durable entries
+- **superpowers:engineering-knowledge-garden** - archive full research, search prior archive briefs, and later distill durable entries
