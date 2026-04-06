@@ -37,6 +37,54 @@ This repository currently tracks those changes in a fork/worktree form rather th
 - Custom skills and system notes:
   - `docs/better-sp-custom-skills-and-system.md`
 
+## Specially Marked Workflow Map
+
+Legend:
+- **Blue**: upstream baseline skill / workflow node
+- **Orange**: better-sp custom or materially strengthened node
+- **Green**: knowledge-garden loop introduced in this fork
+
+```mermaid
+flowchart TD
+    A["User request"] --> R{"Need outside references first?"}
+    R -- "Yes" --> S["project-landscape-analysis"]
+    R -- "No" --> B{"What kind of work is this?"}
+    S --> B
+    B -- "Behavior unclear" --> C["brainstorming"]
+    B -- "Behavior frozen but structure messy" --> D["refactor-mode"]
+    B -- "Already clear enough" --> E["writing-plans"]
+    C --> E
+    D --> E
+    E --> F["executing-plans"]
+    F --> G["direct"]
+    F --> H["sidecar"]
+    F --> I["parallel"]
+    F --> J["high-assurance serial<br/>1 writer + readers"]
+    G --> K["requesting-code-review"]
+    H --> K
+    I --> K
+    J --> K
+    K --> L["finishing-a-development-branch"]
+    L --> M["engineering-knowledge-garden"]
+    S --> N["archive brief"]
+    N --> O["guidance brief"]
+    O --> C
+    O --> E
+    M --> P["distilled evergreen entries"]
+    P --> E
+    P --> F
+    P --> K
+    Q["gardener-mode"] --> M
+
+    classDef upstream fill:#e8f1ff,stroke:#4f7cff,color:#123;
+    classDef custom fill:#fff1e8,stroke:#ff8a3d,color:#432;
+    classDef garden fill:#ebfff1,stroke:#27ae60,color:#123;
+
+    class A,B,C,E,G,H,I,K,L upstream;
+    class S,D,F,J,Q custom;
+    class M,N,O,P garden;
+```
+
 ## Fork Architecture At A Glance
 
 ```mermaid
