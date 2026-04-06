@@ -136,6 +136,8 @@ Real sample files in this branch:
 
 - Archive brief:
   - `docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-agent-workflow-landscape.md`
+- Guidance brief:
+  - `docs/engineering-knowledge-garden/guidance/2026-04-06-agent-workflow-landscape-guidance.md`
 - Distilled entries:
   - `docs/engineering-knowledge-garden/decisions/keep-research-archives-separate-from-evergreen-garden-entries.md`
   - `docs/engineering-knowledge-garden/agent-optimizations/use-one-execution-entry-and-route-internally-by-task-metadata.md`
@@ -266,7 +268,7 @@ Start a new session in your chosen platform and ask for something that should tr
 
 ### Workflow changes
 
-1. **project-landscape-analysis** - Activates when a greenfield project, new subsystem, or expensive architecture choice should first be compared against external references. It performs a bypass check, prefers secondary sources, and passes only a compressed guidance card downstream.
+1. **project-landscape-analysis** - Activates when a greenfield project, new subsystem, or expensive architecture choice should first be compared against external references. It performs a bypass check, prefers secondary sources, archives the full brief, and passes only a compressed guidance card downstream.
 
 2. **brainstorming** - Activates when behavior or feature shape is still unclear. It no longer tries to own every possible non-trivial task, and it should not force dead clarification loops once the spec is already sharp.
 
@@ -284,7 +286,7 @@ Start a new session in your chosen platform and ask for something that should tr
 
 9. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
 
-10. **engineering-knowledge-garden** - Activates when durable project knowledge should be looked up, archived from research, distilled into small evergreen entries, or pruned without polluting `AGENTS.md` or loading a giant memory blob.
+10. **engineering-knowledge-garden** - Activates when durable project knowledge should be looked up, archived from research, extracted into guidance artifacts, distilled into small evergreen entries, or pruned without polluting `AGENTS.md` or loading a giant memory blob.
 
 11. **gardener-mode** - Activates as a separate maintenance workflow to validate, audit, distill archive backlog, and prune the knowledge garden without blocking everyday implementation.
 
@@ -301,7 +303,22 @@ This fork was explicitly pressure-tested against the orchestration failures that
 
 See:
 - `docs/superpowers/evals/2026-04-06-better-sp-routing-pressure-test.md`
+- `docs/superpowers/evals/2026-04-06-better-sp-workflow-regression-matrix.md`
 - `docs/superpowers/specs/2026-04-06-engineering-knowledge-garden-design.md`
+
+## Minimal CI / Fork Status Check
+
+This fork now includes a minimal GitHub Actions workflow for fork maintenance:
+
+- workflow file: `.github/workflows/ci.yml`
+- intended required status check: `CI / integrity`
+- coverage:
+  - `tests/engineering-knowledge-garden/garden-cli.test.js`
+  - `tests/workflow-evals/workflow-contracts.test.js`
+  - `node skills/engineering-knowledge-garden/scripts/garden.cjs validate docs/engineering-knowledge-garden --include-archive`
+  - `git diff --check`
+
+The goal is not heavyweight automation. It is a cheap regression layer that catches accidental workflow / garden contract drift before merge.
 
 ## What's Inside
 

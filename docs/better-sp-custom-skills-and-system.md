@@ -183,13 +183,15 @@ Required caution:
 
 ---
 
-### Boundary 2: `archive != evergreen`
+### Boundary 2: `archive != guidance != evergreen`
 
 - **archive** = full research, context, comparison, long-form notes
+- **guidance** = compressed downstream borrow / avoid handoff
 - **evergreen** = small, reusable, triggerable knowledge
 
 Required caution:
 - something being interesting is not enough to promote it
+- do not hand the full archive to downstream skills when a guidance brief is enough
 - archive first, distill later
 
 ---
@@ -249,6 +251,7 @@ Preferred evidence:
 - baseline failure
 - updated behavior after the change
 - ideally a transcript or eval artifact
+- cheap regression coverage in CI when full transcript harnesses are too heavy
 
 ### 4. Do not turn `AGENTS.md` into a landfill again
 

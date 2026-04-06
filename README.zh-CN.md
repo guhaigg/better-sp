@@ -137,6 +137,8 @@ flowchart LR
 
 - Archive brief：
   - `docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-agent-workflow-landscape.md`
+- Guidance brief：
+  - `docs/engineering-knowledge-garden/guidance/2026-04-06-agent-workflow-landscape-guidance.md`
 - Distilled entries：
   - `docs/engineering-knowledge-garden/decisions/keep-research-archives-separate-from-evergreen-garden-entries.md`
   - `docs/engineering-knowledge-garden/agent-optimizations/use-one-execution-entry-and-route-internally-by-task-metadata.md`
@@ -205,14 +207,15 @@ refactor 不是“继续写功能，只是顺手清理一下”。
 
 - 支持 **archive-create**：先把完整研究 brief 归档
 - 支持 **search-archive**：回查历史研究，而不是重新联网再搜一遍
+- 支持 **extract-guidance**：把 archive 里的 `Downstream Guidance` 半自动压缩成可传下游的 guidance artifact
 - 支持 **distill**：把 archive 中真正耐用的结论蒸馏成 evergreen entry
 - `audit` 会额外检查 **archive backlog**
-- `validate --include-archive` 可以同时校验 archive 与 evergreen entry 结构
+- `validate --include-archive` 可以同时校验 archive / guidance / evergreen entry 结构
 
 ## 主要技能变化
 
 1. **project-landscape-analysis**  
-   先做 bypass check；优先二手分析而不是直接啃 repo；完整研究进入 archive，只把 guidance brief 传下游。
+   先做 bypass check；优先二手分析而不是直接啃 repo；完整研究进入 archive，再抽 guidance brief 传下游。
 
 2. **brainstorming**  
    只在真的需要澄清行为时问问题，不再为了“显得严谨”强行问题循环。
@@ -227,7 +230,7 @@ refactor 不是“继续写功能，只是顺手清理一下”。
    单一执行入口；内部决定 direct / sidecar / parallel / high-assurance-serial。
 
 6. **engineering-knowledge-garden**  
-   负责 lookup / archive / distill / capture / prune。
+   负责 lookup / archive / guidance / distill / capture / prune。
 
 7. **gardener-mode**  
    独立维护模式；负责 validate、audit、archive backlog 收口、重复项与陈旧项治理。
@@ -243,7 +246,22 @@ refactor 不是“继续写功能，只是顺手清理一下”。
 
 参考：
 - `docs/superpowers/evals/2026-04-06-better-sp-routing-pressure-test.md`
+- `docs/superpowers/evals/2026-04-06-better-sp-workflow-regression-matrix.md`
 - `docs/superpowers/specs/2026-04-06-engineering-knowledge-garden-design.md`
+
+## 最小 CI / 状态检查
+
+这个 fork 现在补了一层最小 GitHub Actions CI：
+
+- 工作流文件：`.github/workflows/ci.yml`
+- 目标 required status check：`CI / integrity`
+- 覆盖内容：
+  - `tests/engineering-knowledge-garden/garden-cli.test.js`
+  - `tests/workflow-evals/workflow-contracts.test.js`
+  - `node skills/engineering-knowledge-garden/scripts/garden.cjs validate docs/engineering-knowledge-garden --include-archive`
+  - `git diff --check`
+
+目标不是把 fork 变成重型流水线，而是给 workflow / garden contract 一层便宜但有用的回归保护。
 
 ## 安装
 

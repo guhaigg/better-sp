@@ -14,8 +14,10 @@ Do **not** use the archive for:
 ## Current layout
 
 ```text
-archive/
-  landscapes/
+docs/engineering-knowledge-garden/
+  archive/
+    landscapes/
+  guidance/
 ```
 
 ## Archive -> Distill rule
@@ -35,9 +37,11 @@ Distill later when:
 ```bash
 node skills/engineering-knowledge-garden/scripts/garden.cjs archive-create --kind landscape-brief --title "Multi-agent routing landscape"
 node skills/engineering-knowledge-garden/scripts/garden.cjs search-archive --kind landscape-brief --text "routing"
+node skills/engineering-knowledge-garden/scripts/garden.cjs extract-guidance --archive docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-routing.md
 node skills/engineering-knowledge-garden/scripts/garden.cjs distill --archive docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-routing.md --type pattern --title "One writer plus readers"
 ```
 
 ## Live sample
 
 - `docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-agent-workflow-landscape.md`
+- `docs/engineering-knowledge-garden/guidance/2026-04-06-agent-workflow-landscape-guidance.md`

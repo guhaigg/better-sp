@@ -64,6 +64,28 @@ const REQUIRED_ARCHIVE_SECTIONS = {
   ],
 };
 
+const GUIDANCE_KINDS = new Set(["guidance-brief"]);
+
+const REQUIRED_GUIDANCE_KEYS = [
+  "title",
+  "kind",
+  "source_archive",
+  "tags",
+  "created_at",
+  "last_reviewed",
+];
+
+const REQUIRED_GUIDANCE_SECTIONS = {
+  "guidance-brief": [
+    "# Guidance Brief",
+    "## Borrow",
+    "## Avoid",
+    "## Preferred Shape",
+    "## Unknowns",
+    "## Confidence",
+  ],
+};
+
 function expandHome(input) {
   if (!input) return input;
   if (input === "~") return os.homedir();
@@ -248,7 +270,13 @@ function loadDocument(file, source) {
     body,
     content,
   };
-  document.documentType = document.data.kind ? "archive" : "entry";
+  if (GUIDANCE_KINDS.has(document.data.kind)) {
+    document.documentType = "guidance";
+  } else if (document.data.kind) {
+    document.documentType = "archive";
+  } else {
+    document.documentType = "entry";
+  }
   return document;
 }
 
@@ -419,6 +447,81 @@ function validateArchive(entry) {
   }
 
   return errors;
+}
+
+function validateGuidance(entry) {
+  const errors = [];
+  const data = entry.data || {};
+
+  for (const key of REQUIRED_GUIDANCE_KEYS) {
+    if (!(key in data)) errors.push(`missing frontmatter key: ${key}`);
+  }
+
+  if (data.kind && !GUIDANCE_KINDS.has(data.kind)) {
+    errors.push(`invalid guidance kind: ${data.kind}`);
+  }
+
+  if ("tags" in data && !Array.isArray(data.tags)) {
+    errors.push("tags must be a list");
+  }
+
+  const body = entry.body || "";
+  const requiredSections = REQUIRED_GUIDANCE_SECTIONS[data.kind] || [];
+  for (const heading of requiredSections) {
+    if (!body.includes(heading)) {
+      errors.push(`missing body section: ${heading}`);
+    }
+  }
+
+  return errors;
+}
+
+function extractHeadingBlock(body, level, title) {
+  const lines = String(body || "").replace(/\r\n/g, "\n").split("\n");
+  const heading = `${"#".repeat(level)} ${title}`;
+  const start = lines.findIndex((line) => line.trim() === heading);
+  if (start === -1) return "";
+
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i += 1) {
+    const match = /^(#{1,6})\s+/.exec(lines[i].trim());
+    if (match && match[1].length <= level) {
+      end = i;
+      break;
+    }
+  }
+
+  return lines.slice(start + 1, end).join("\n").trim();
+}
+
+function normalizeMarkdownBlock(block, fallback = "- ") {
+  const normalized = String(block || "").trim();
+  return normalized || fallback;
+}
+
+function extractGuidanceParts(archiveBody) {
+  const downstream = extractHeadingBlock(archiveBody, 2, "Downstream Guidance");
+  if (!downstream) {
+    throw new Error("Archive brief is missing the Downstream Guidance section");
+  }
+
+  return {
+    borrow: normalizeMarkdownBlock(extractHeadingBlock(downstream, 3, "Borrow")),
+    avoid: normalizeMarkdownBlock(extractHeadingBlock(downstream, 3, "Avoid")),
+    preferredShape: normalizeMarkdownBlock(extractHeadingBlock(downstream, 3, "Preferred Shape")),
+    unknowns: normalizeMarkdownBlock(extractHeadingBlock(downstream, 3, "Unknowns")),
+    confidence: normalizeMarkdownBlock(extractHeadingBlock(downstream, 3, "Confidence")),
+  };
+}
+
+function extractDistillCandidates(archiveBody) {
+  const block = extractHeadingBlock(archiveBody, 2, "Distill Candidates");
+  if (!block) return [];
+  return block
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => /^-\s+\[\s\]\s+/.test(line))
+    .map((line) => line.replace(/^-\s+\[\s\]\s+/, "").trim());
 }
 
 function commandSearch(args) {
@@ -639,7 +742,11 @@ function commandValidate(args) {
     if (entry.documentType === "archive" && !includeArchive && !toPosix(file).includes("/archive/")) {
       continue;
     }
-    const errors = entry.documentType === "archive" ? validateArchive(entry) : validateEntry(entry);
+    const errors = entry.documentType === "archive"
+      ? validateArchive(entry)
+      : entry.documentType === "guidance"
+        ? validateGuidance(entry)
+        : validateEntry(entry);
     if (errors.length === 0) {
       console.log(`PASS ${file}`);
       continue;
@@ -957,6 +1064,83 @@ function commandDistill(args) {
   console.log(`ARCHIVE ${archiveFile}`);
 }
 
+function commandExtractGuidance(args) {
+  const archiveFile = resolvePath(args.archive);
+  if (!archiveFile) {
+    console.error("extract-guidance requires --archive");
+    process.exit(1);
+  }
+  if (!fs.existsSync(archiveFile)) {
+    console.error(`Archive file not found: ${archiveFile}`);
+    process.exit(1);
+  }
+
+  const archiveDoc = loadDocument(archiveFile, "local");
+  if (archiveDoc.documentType !== "archive" || archiveDoc.data.kind !== "landscape-brief") {
+    console.error(`extract-guidance only supports landscape archive briefs: ${archiveFile}`);
+    process.exit(1);
+  }
+
+  const root = resolvePath(args.root || GARDEN_ROOT);
+  const archiveRel = relativeTo(process.cwd(), archiveFile);
+  const baseName = path.basename(archiveFile, ".md");
+  const defaultFile = path.join(root, "guidance", `${baseName}-guidance.md`);
+  const guidanceFile = resolvePath(args.output || defaultFile);
+  fs.mkdirSync(path.dirname(guidanceFile), { recursive: true });
+
+  const existingCreatedAt = fs.existsSync(guidanceFile)
+    ? loadDocument(guidanceFile, "local").data.created_at
+    : null;
+
+  const guidance = extractGuidanceParts(archiveDoc.body);
+  const data = {
+    title: args.title || `${archiveDoc.data.title} guidance`,
+    kind: "guidance-brief",
+    source_archive: archiveRel,
+    tags: uniqueList(archiveDoc.data.tags),
+    created_at: existingCreatedAt || today(),
+    last_reviewed: today(),
+  };
+
+  const body = `# Guidance Brief
+
+**Research File:** \`${archiveRel}\`
+
+## Borrow
+
+${guidance.borrow}
+
+## Avoid
+
+${guidance.avoid}
+
+## Preferred Shape
+
+${guidance.preferredShape}
+
+## Unknowns
+
+${guidance.unknowns}
+
+## Confidence
+
+${guidance.confidence}
+`;
+
+  fs.writeFileSync(guidanceFile, stringifyDocument(data, body, REQUIRED_GUIDANCE_KEYS), "utf8");
+
+  console.log(`GUIDANCE ${guidanceFile}`);
+  console.log(`ARCHIVE ${archiveFile}`);
+
+  const candidates = extractDistillCandidates(archiveDoc.body);
+  if (candidates.length > 0) {
+    console.log("DISTILL_CANDIDATES");
+    for (const item of candidates) {
+      console.log(`- ${item}`);
+    }
+  }
+}
+
 function main() {
   const argv = process.argv.slice(2);
   const command = argv[0];
@@ -985,6 +1169,9 @@ function main() {
       case "distill":
         commandDistill(args);
         break;
+      case "extract-guidance":
+        commandExtractGuidance(args);
+        break;
       default:
         console.log("Usage:");
         console.log("  garden.cjs search --tag auth --scope src/auth --type pattern");
@@ -994,6 +1181,7 @@ function main() {
         console.log("  garden.cjs audit --days 180 --threshold 0.5 --archive-days 30");
         console.log('  garden.cjs create --type pattern --title "Consolidate auth parsing in shared core"');
         console.log('  garden.cjs archive-create --kind landscape-brief --title "Multi-agent routing landscape"');
+        console.log('  garden.cjs extract-guidance --archive docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-routing.md');
         console.log('  garden.cjs distill --archive docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-routing.md --type pattern --title "One writer plus readers"');
         process.exit(command ? 1 : 0);
     }

@@ -133,13 +133,15 @@ better-sp 不是脱离 [obra/superpowers](https://github.com/obra/superpowers) �
 
 ---
 
-### 边界 2：`archive != evergreen`
+### 边界 2：`archive != guidance != evergreen`
 
 - **archive**：完整研究、完整对比、完整背景
+- **guidance**：给下游用的压缩 Borrow / Avoid 指引
 - **evergreen**：小、稳、可触发、可复用
 
 必要提醒：
 - “有价值” 不等于 “应该立刻进 garden”
+- 如果 guidance brief 已够用，就不要把完整 archive 注入下游
 - 先 archive，再 distill，别反过来
 
 ---
@@ -203,6 +205,7 @@ better-sp 不是脱离 [obra/superpowers](https://github.com/obra/superpowers) �
 - baseline failure
 - 修改后验证
 - 最好有真实 transcript / eval
+- 如果 transcript harness 太重，至少补一层便宜的 CI 回归保护
 
 ### 4. 不要把 AGENTS.md 再次变成垃圾场
 

@@ -126,6 +126,13 @@ Pass only the compressed handoff downstream:
 Use the template in:
 - `references/constraint-guidance-brief-template.md`
 
+Prefer generating it from the archive once the brief is filled:
+
+```bash
+node skills/engineering-knowledge-garden/scripts/garden.cjs extract-guidance \
+  --archive docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-routing.md
+```
+
 This is the only part that should flow into `brainstorming` or `writing-plans`.
 
 ### 3. Distilled Garden Entries

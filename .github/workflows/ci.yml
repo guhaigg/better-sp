@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  integrity:
+    name: integrity
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run workflow and garden tests
+        run: |
+          node --test \
+            tests/engineering-knowledge-garden/garden-cli.test.js \
+            tests/workflow-evals/workflow-contracts.test.js
+
+      - name: Validate engineering knowledge garden
+        run: node skills/engineering-knowledge-garden/scripts/garden.cjs validate docs/engineering-knowledge-garden --include-archive
+
+      - name: Check patch formatting
+        run: git diff --check

@@ -29,6 +29,7 @@ Do **not** use it for:
 
 - **Project-local read/write root:** `docs/engineering-knowledge-garden/`
 - **Structured archive:** `docs/engineering-knowledge-garden/archive/landscapes/`
+- **Structured guidance handoff:** `docs/engineering-knowledge-garden/guidance/`
 - **Optional global read-only root:** `$SUPERPOWERS_GLOBAL_GARDEN`
 
 Normal task work writes only to the project-local garden. Global knowledge should be promoted intentionally.
@@ -37,9 +38,10 @@ Normal task work writes only to the project-local garden. Global knowledge shoul
 
 1. **Lookup** only the narrow entries relevant to planning, execution, refactor, or review
 2. **Archive** full external research or comparison notes without polluting downstream prompts
-3. **Distill** only proven lessons from those archives into evergreen entries
-4. **Capture** new durable lessons from implementation work
-5. **Validate / audit / prune** on a maintenance cadence
+3. **Extract guidance** into a short downstream handoff
+4. **Distill** only proven lessons from those archives into evergreen entries
+5. **Capture** new durable lessons from implementation work
+6. **Validate / audit / prune** on a maintenance cadence
 
 ## Modes
 
@@ -81,7 +83,18 @@ Archive briefs are for:
 
 They are **not** automatically loaded into downstream prompts.
 
-### 3. Distill archive into evergreen knowledge
+### 3. Extract downstream guidance
+
+When the archive brief is ready, turn only the `## Downstream Guidance` section into a small handoff artifact:
+
+```bash
+node skills/engineering-knowledge-garden/scripts/garden.cjs extract-guidance \
+  --archive docs/engineering-knowledge-garden/archive/landscapes/2026-04-06-routing-landscape.md
+```
+
+This creates a `guidance-brief` under `docs/engineering-knowledge-garden/guidance/` and prints any unchecked distill candidates so the research -> guidance -> distill loop stays visible.
+
+### 4. Distill archive into evergreen knowledge
 
 Only distill when a lesson proved durable enough to reuse:
 
@@ -95,7 +108,7 @@ node skills/engineering-knowledge-garden/scripts/garden.cjs validate docs/engine
 
 `distill` creates a draft evergreen entry and records the linkage back to the archive brief.
 
-### 4. Capture from real work
+### 5. Capture from real work
 
 Capture only durable lessons from implementation. Prefer batching near branch finish, PR prep, or task-batch completion.
 
@@ -108,7 +121,7 @@ node skills/engineering-knowledge-garden/scripts/garden.cjs validate docs/engine
 Use the template at:
 - `skills/engineering-knowledge-garden/references/entry-template.md`
 
-### 5. Validate and prune
+### 6. Validate and prune
 
 Prune duplicates, stale entries, or archive backlog **outside** the hot path of feature work when possible.
 
@@ -146,7 +159,7 @@ Do not query the garden for every tiny feature idea.
 
 ### Project Landscape Analysis
 - archive the full landscape brief under `docs/engineering-knowledge-garden/archive/landscapes/`
-- pass only the compressed guidance brief downstream
+- extract and pass only the compressed guidance brief downstream
 - distill only the lessons that proved durable after real implementation or review
 
 ### Refactor Mode

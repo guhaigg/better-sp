@@ -89,6 +89,106 @@ test("distill creates a draft garden entry and records the linkage back to the a
   assert.match(archiveContent, /patterns\/route-shared-write-scope-through-one-writer-plus-readers\.md/);
 });
 
+test("extract-guidance creates a compressed guidance brief from a landscape archive", () => {
+  const root = makeRepo();
+  const archive = run(
+    root,
+    "archive-create",
+    "--title",
+    "Controller routing landscape",
+    "--tags",
+    "routing,agents",
+  );
+
+  writeFileSync(
+    archive,
+    `---
+title: Controller routing landscape
+kind: landscape-brief
+status: archived
+tags:
+  - routing
+  - agents
+sources: []
+distilled_into: []
+created_at: 2026-04-06
+last_reviewed: 2026-04-06
+---
+
+# Landscape Brief
+
+## Goal
+
+- Compare controller routing strategies.
+
+## Bypass Check
+
+- External comparison was still useful.
+
+## Search Strategy
+
+- Query style: routing
+- Sources prioritized:
+- Why these sources:
+
+## Candidate Comparison
+
+### Candidate 1: Example
+- Problem solved:
+- Workflow / architecture shape:
+- Evidence:
+- Strengths:
+- Tradeoffs:
+- Borrow:
+- Avoid:
+
+## Downstream Guidance
+
+### Borrow
+
+- one execution entry
+- one writer plus readers on shared write scope
+
+### Avoid
+
+- human-facing internal mode menus
+
+### Preferred Shape
+
+- route internally by task metadata
+
+### Unknowns
+
+- whether more transcript harnesses are needed
+
+### Confidence
+
+- Medium-High
+
+## Distill Candidates
+
+- [ ] Pattern: route shared write scope through one writer plus readers
+- [ ] Pitfall: do not hard-wait after dispatch
+`,
+    "utf8",
+  );
+
+  const output = run(root, "extract-guidance", "--archive", archive);
+  const [guidanceLine] = output.split(/\r?\n/);
+  const guidancePath = guidanceLine.replace(/^GUIDANCE\s+/, "");
+
+  assert.ok(existsSync(guidancePath), "guidance file should be created");
+  const guidanceContent = readFileSync(guidancePath, "utf8");
+  assert.match(guidanceContent, /kind: guidance-brief/);
+  assert.match(guidanceContent, /source_archive:/);
+  assert.match(guidanceContent, /## Borrow/);
+  assert.match(guidanceContent, /one execution entry/);
+  assert.match(guidanceContent, /## Preferred Shape/);
+  assert.match(guidanceContent, /route internally by task metadata/);
+  assert.match(output, /DISTILL_CANDIDATES/);
+  assert.match(output, /Pattern: route shared write scope through one writer plus readers/);
+});
+
 test("audit surfaces archive briefs that were never distilled", () => {
   const root = makeRepo();
   writeArchive(
@@ -171,8 +271,10 @@ last_reviewed: 2026-01-01
 
 test("validate can include archive briefs when requested", () => {
   const root = makeRepo();
-  run(root, "archive-create", "--title", "Landscape for validation");
+  const archive = run(root, "archive-create", "--title", "Landscape for validation");
+  run(root, "extract-guidance", "--archive", archive);
   const report = run(root, "validate", "docs/engineering-knowledge-garden", "--include-archive");
   assert.match(report, /PASS/);
   assert.match(report, /landscapes/);
+  assert.match(report, /guidance/);
 });
