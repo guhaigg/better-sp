@@ -1,182 +1,118 @@
 ---
 name: dispatching-parallel-agents
-description: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies
+description: Use when facing 2+ independent tasks that can be worked on in parallel, or when one writer can be paired with read-only sidecars
 ---
 
 # Dispatching Parallel Agents
 
-## Overview
+Delegate independent work to specialized agents with isolated context. Parallelism is not limited to “many writers”; it also includes **one writer plus read-only sidecars**.
 
-You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
-
-When you have multiple unrelated failures (different test files, different subsystems, different bugs), investigating them sequentially wastes time. Each investigation is independent and can happen in parallel.
-
-**Core principle:** Dispatch one agent per independent problem domain. Let them work concurrently.
+**Core principle:** Dispatch one agent per independent domain, and if write scopes collide, degrade to **single writer + parallel readers**, not **single writer + waiting**.
 
 ## When to Use
 
 ```dot
 digraph when_to_use {
-    "Multiple failures?" [shape=diamond];
-    "Are they independent?" [shape=diamond];
-    "Single agent investigates all" [shape=box];
-    "One agent per problem domain" [shape=box];
-    "Can they work in parallel?" [shape=diamond];
-    "Sequential agents" [shape=box];
-    "Parallel dispatch" [shape=box];
+    "Multiple tasks or failures?" [shape=diamond];
+    "Can write scopes be split safely?" [shape=diamond];
+    "Parallel writers" [shape=box];
+    "Shared write scope?" [shape=diamond];
+    "Single writer + read-only sidecars" [shape=box];
+    "Sequential / single-agent investigation" [shape=box];
 
-    "Multiple failures?" -> "Are they independent?" [label="yes"];
-    "Are they independent?" -> "Single agent investigates all" [label="no - related"];
-    "Are they independent?" -> "Can they work in parallel?" [label="yes"];
-    "Can they work in parallel?" -> "Parallel dispatch" [label="yes"];
-    "Can they work in parallel?" -> "Sequential agents" [label="no - shared state"];
+    "Multiple tasks or failures?" -> "Can write scopes be split safely?" [label="yes"];
+    "Multiple tasks or failures?" -> "Sequential / single-agent investigation" [label="no"];
+    "Can write scopes be split safely?" -> "Parallel writers" [label="yes"];
+    "Can write scopes be split safely?" -> "Shared write scope?" [label="no"];
+    "Shared write scope?" -> "Single writer + read-only sidecars" [label="yes"];
+    "Shared write scope?" -> "Sequential / single-agent investigation" [label="no - tightly coupled and no sidecars"];
 }
 ```
 
 **Use when:**
-- 3+ test files failing with different root causes
-- Multiple subsystems broken independently
-- Each problem can be understood without context from others
-- No shared state between investigations
+- 2+ independent failures have different likely root causes
+- Multiple subsystems can be worked on without shared write scope
+- One writer is active, but explorers / verifiers / bounded reviewers can still run in parallel
 
 **Don't use when:**
-- Failures are related (fix one might fix others)
-- Need to understand full system state
-- Agents would interfere with each other
+- Failures are strongly coupled and require the same write scope
+- Every useful next step depends on one unresolved blocking result
+
+## Expected Inputs from writing-plans
+
+When used to execute plan tasks, prefer task metadata from `superpowers:writing-plans` over ad-hoc judgment:
+- `Depends on`
+- `Write Scope`
+- `Potential Conflicts`
+- `Verify`
+- `Execution Recommendation`
+- `Review Level`
+
+The key routing question is simple: are the write scopes actually disjoint? If not, keep one writer and preserve read-only parallelism.
 
 ## The Pattern
 
-### 1. Identify Independent Domains
+### 1. Identify Work Types
 
-Group failures by what's broken:
-- File A tests: Tool approval flow
-- File B tests: Batch completion behavior
-- File C tests: Abort functionality
+Split work into:
+- **writer tasks** — code changes in a bounded write scope
+- **reader tasks** — exploration, verification, bounded review, test runs, log analysis
 
-Each domain is independent - fixing tool approval doesn't affect abort tests.
+### 2. Prefer Parallel Writers When Safe
 
-### 2. Create Focused Agent Tasks
+If write scopes do not overlap:
+- Agent A → subsystem 1
+- Agent B → subsystem 2
+- Agent C → subsystem 3
 
-Each agent gets:
-- **Specific scope:** One test file or subsystem
-- **Clear goal:** Make these tests pass
-- **Constraints:** Don't change other code
-- **Expected output:** Summary of what you found and fixed
+### 3. Degrade Gracefully on Shared Write Scope
 
-### 3. Dispatch in Parallel
+If multiple tasks converge on the same file or module:
+- keep **one writer**
+- add read-only sidecars such as:
+  - explorer → trace anchors / call sites / dependencies
+  - verifier → run unaffected tests
+  - reviewer → inspect bounded diff against checklist
+  - analyst → summarize logs / regressions
 
-```typescript
-// In Claude Code / AI environment
-Task("Fix agent-tool-abort.test.ts failures")
-Task("Fix batch-completion-behavior.test.ts failures")
-Task("Fix tool-approval-race-conditions.test.ts failures")
-// All three run concurrently
-```
+**Shared write scope is not a reason to stop parallelism.**
 
-### 4. Review and Integrate
+### 4. The Controller Must Stay Busy
 
-When agents return:
-- Read each summary
-- Verify fixes don't conflict
-- Run full test suite
-- Integrate all changes
+After dispatching agents:
+- do not immediately wait
+- finish non-blocking controller work first
+- only wait when the next real step depends on a result and no sidecar work remains
 
 ## Agent Prompt Structure
 
-Good agent prompts are:
-1. **Focused** - One clear problem domain
-2. **Self-contained** - All context needed to understand the problem
-3. **Specific about output** - What should the agent return?
-
-```markdown
-Fix the 3 failing tests in src/agents/agent-tool-abort.test.ts:
-
-1. "should abort tool with partial output capture" - expects 'interrupted at' in message
-2. "should handle mixed completed and aborted tools" - fast tool aborted instead of completed
-3. "should properly track pendingToolCount" - expects 3 results but gets 0
-
-These are timing/race condition issues. Your task:
-
-1. Read the test file and understand what each test verifies
-2. Identify root cause - timing issues or actual bugs?
-3. Fix by:
-   - Replacing arbitrary timeouts with event-based waiting
-   - Fixing bugs in abort implementation if found
-   - Adjusting test expectations if testing changed behavior
-
-Do NOT just increase timeouts - find the real issue.
-
-Return: Summary of what you found and what you fixed.
-```
+Good prompts are:
+1. **Focused** — one domain or one read-only purpose
+2. **Bounded** — explicit files / tests / checklist / exclusions
+3. **Specific about output** — root cause, changes, or verification result
 
 ## Common Mistakes
 
-**❌ Too broad:** "Fix all the tests" - agent gets lost
-**✅ Specific:** "Fix agent-tool-abort.test.ts" - focused scope
+**❌ Too broad:** "Fix all the tests"
+**✅ Better:** "Investigate failures in file X only"
 
-**❌ No context:** "Fix the race condition" - agent doesn't know where
-**✅ Context:** Paste the error messages and test names
+**❌ Shared write scope => stop all parallel work**
+**✅ Better:** keep one writer and add read-only sidecars
 
-**❌ No constraints:** Agent might refactor everything
-**✅ Constraints:** "Do NOT change production code" or "Fix tests only"
+**❌ Spawn agents and immediately wait**
+**✅ Better:** run local checks, prep integration, or dispatch sidecars first
 
-**❌ Vague output:** "Fix it" - you don't know what changed
-**✅ Specific:** "Return summary of root cause and changes"
-
-## When NOT to Use
-
-**Related failures:** Fixing one might fix others - investigate together first
-**Need full context:** Understanding requires seeing entire system
-**Exploratory debugging:** You don't know what's broken yet
-**Shared state:** Agents would interfere (editing same files, using same resources)
-
-## Real Example from Session
-
-**Scenario:** 6 test failures across 3 files after major refactoring
-
-**Failures:**
-- agent-tool-abort.test.ts: 3 failures (timing issues)
-- batch-completion-behavior.test.ts: 2 failures (tools not executing)
-- tool-approval-race-conditions.test.ts: 1 failure (execution count = 0)
-
-**Decision:** Independent domains - abort logic separate from batch completion separate from race conditions
-
-**Dispatch:**
-```
-Agent 1 → Fix agent-tool-abort.test.ts
-Agent 2 → Fix batch-completion-behavior.test.ts
-Agent 3 → Fix tool-approval-race-conditions.test.ts
-```
-
-**Results:**
-- Agent 1: Replaced timeouts with event-based waiting
-- Agent 2: Fixed event structure bug (threadId in wrong place)
-- Agent 3: Added wait for async tool execution to complete
-
-**Integration:** All fixes independent, no conflicts, full suite green
-
-**Time saved:** 3 problems solved in parallel vs sequentially
-
-## Key Benefits
-
-1. **Parallelization** - Multiple investigations happen simultaneously
-2. **Focus** - Each agent has narrow scope, less context to track
-3. **Independence** - Agents don't interfere with each other
-4. **Speed** - 3 problems solved in time of 1
+**❌ Two writers editing same file family**
+**✅ Better:** one writer, others stay read-only
 
 ## Verification
 
 After agents return:
-1. **Review each summary** - Understand what changed
-2. **Check for conflicts** - Did agents edit same code?
-3. **Run full suite** - Verify all fixes work together
-4. **Spot check** - Agents can make systematic errors
+1. Review each summary
+2. Check write-scope conflicts
+3. Integrate or redirect follow-up work
+4. Run relevant local verification
 
 ## Real-World Impact
 
-From debugging session (2025-10-03):
-- 6 failures across 3 files
-- 3 agents dispatched in parallel
-- All investigations completed concurrently
-- All fixes integrated successfully
-- Zero conflicts between agent changes
+Parallel dispatch is fastest when the controller keeps routing work instead of blocking. The biggest win is not “more agents”; it is avoiding idle time while still respecting write-scope safety.

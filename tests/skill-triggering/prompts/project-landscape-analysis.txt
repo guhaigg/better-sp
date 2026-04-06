@@ -1,0 +1,1 @@
+Before we lock this greenfield multi-agent workflow, I want to look at similar projects and architecture writeups, compare what is worth borrowing, avoid copying their mistakes, and then carry only the distilled guidance into our own design.

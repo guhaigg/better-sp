@@ -37,6 +37,17 @@ Stop. Don't proceed to Step 2.
 
 **If tests pass:** Continue to Step 2.
 
+### Step 1.5: Batch-Capture Durable Knowledge (Optional)
+
+Before closing the branch, ask whether this work produced a durable:
+- pattern
+- pitfall
+- verification recipe
+- reusable asset
+- agent optimization
+
+If yes, do one bounded batched capture through `superpowers:engineering-knowledge-garden`. Do not turn this into a long foreground documentation session.
+
 ### Step 2: Determine Base Branch
 
 ```bash
@@ -198,3 +209,4 @@ git worktree remove <worktree-path>
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill
+- **engineering-knowledge-garden** - Captures durable lessons before the branch closes

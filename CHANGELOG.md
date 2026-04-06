@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **Refactor mode**: Added `refactor-mode` as a dedicated structural-cleanup workflow for patch accumulation, duplication, and reuse recovery. It freezes behavior, defines target seams, and feeds structural work back into routed planning/execution instead of treating refactors as normal feature work.
+- **Engineering knowledge garden**: Added `engineering-knowledge-garden` plus project-local garden structure, lightweight search/validation tooling, and initial seeded entries so durable project knowledge no longer has to accumulate in `AGENTS.md`.
+- **Gardener mode**: Added `gardener-mode` plus `garden audit` support so pruning and duplicate detection can run as an explicit maintenance workflow instead of burdening normal feature work.
+- **Project landscape analysis**: Added `project-landscape-analysis` for bounded external comparison before design. It performs a bypass check, prefers secondary sources over raw repo spelunking, and hands downstream skills a compressed guidance brief instead of a giant research dump.
+
+### Changed
+
+- **Execution routing model**: `executing-plans` is now the single execution entry point. Plans carry routing metadata (`Depends on`, `Write Scope`, `Potential Conflicts`, `Verify`, `Execution Recommendation`, `Review Level`), and execution routes tasks into direct work, sidecars, parallel dispatch, or high-assurance single-writer execution.
+- **Plan handoff**: `writing-plans` no longer asks the human to choose between internal execution strategies. It hands off to `executing-plans`, which owns routing.
+- **Subagent workflow model**: `subagent-driven-development` is repositioned as a high-assurance serial strategy instead of the default execution path for all subagent work.
+- **Parallel degradation**: `dispatching-parallel-agents` now explicitly supports shared-write degradation to single-writer + read-only sidecars instead of blocking the controller immediately.
+- **Brainstorming scope**: `brainstorming` is narrowed to unclear behavior/spec work. It now avoids dead question loops, drafts specs earlier when requirements are already sharp, and points structure-only cleanup to `refactor-mode`.
+- **Skill routing**: `using-superpowers` now distinguishes between unclear behavior work (`brainstorming`) and behavior-frozen structural cleanup (`refactor-mode`).
+
 ## [5.0.5] - 2026-03-17
 
 ### Fixed

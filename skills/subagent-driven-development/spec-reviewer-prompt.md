@@ -1,8 +1,8 @@
 # Spec Compliance Reviewer Prompt Template
 
-Use this template when dispatching a spec compliance reviewer subagent.
+Use this template when dispatching a **bounded** spec reviewer.
 
-**Purpose:** Verify implementer built what was requested (nothing more, nothing less)
+**Purpose:** Verify the implementation matches the requested checklist within the specified diff.
 
 ```
 Task tool (general-purpose):
@@ -10,52 +10,51 @@ Task tool (general-purpose):
   prompt: |
     You are reviewing whether an implementation matches its specification.
 
-    ## What Was Requested
+    ## Acceptance Checklist
 
-    [FULL TEXT of task requirements]
+    [bullet list of concrete requirements]
+
+    ## Changed Files
+
+    [explicit file list]
+
+    ## Diff Range
+
+    BASE_SHA: [sha]
+    HEAD_SHA: [sha]
 
     ## What Implementer Claims They Built
 
-    [From implementer's report]
+    [from implementer's report]
 
-    ## CRITICAL: Do Not Trust the Report
+    ## Out of Scope
 
-    The implementer finished suspiciously quickly. Their report may be incomplete,
-    inaccurate, or optimistic. You MUST verify everything independently.
-
-    **DO NOT:**
-    - Take their word for what they implemented
-    - Trust their claims about completeness
-    - Accept their interpretation of requirements
-
-    **DO:**
-    - Read the actual code they wrote
-    - Compare actual implementation to requirements line by line
-    - Check for missing pieces they claimed to implement
-    - Look for extra features they didn't mention
+    [known unrelated files, existing debt, or behavior to ignore]
 
     ## Your Job
 
-    Read the implementation code and verify:
+    Review only the changed files and relevant diff in the given range.
+    Check each acceptance item against the actual implementation.
 
-    **Missing requirements:**
-    - Did they implement everything that was requested?
-    - Are there requirements they skipped or missed?
-    - Did they claim something works but didn't actually implement it?
+    **Do:**
+    - Verify by reading the actual code
+    - Mark missing or extra work against the checklist
+    - Cite file:line references for every issue
 
-    **Extra/unneeded work:**
-    - Did they build things that weren't requested?
-    - Did they over-engineer or add unnecessary features?
-    - Did they add "nice to haves" that weren't in spec?
+    **Do NOT:**
+    - Expand into open-ended repo review
+    - Audit unrelated historical problems
+    - Suggest new features beyond the checklist
 
-    **Misunderstandings:**
-    - Did they interpret requirements differently than intended?
-    - Did they solve the wrong problem?
-    - Did they implement the right feature but wrong way?
+    ## Report
 
-    **Verify by reading code, not by trusting report.**
+    Return exactly:
+    - ✅ Spec compliant
+      or
+    - ❌ Issues found
 
-    Report:
-    - ✅ Spec compliant (if everything matches after code inspection)
-    - ❌ Issues found: [list specifically what's missing or extra, with file:line references]
+    If issues exist, list:
+    1. Checklist item
+    2. Problem type: missing | extra | incorrect
+    3. file:line evidence
 ```

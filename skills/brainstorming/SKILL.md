@@ -1,21 +1,41 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: Use when defining or reshaping behavior and the intended outcome, constraints, or trade-offs are still unclear enough that a reviewed spec should come before implementation
 ---
 
-# Brainstorming Ideas Into Designs
+# Brainstorming Ideas Into Specs
 
-Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
+Help turn ideas into a reviewed **spec** through natural collaborative dialogue. The output of this skill is a human-review artifact, not an execution plan.
 
-Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+Start by understanding the current project context, then ask questions only as needed to refine the idea. Once you understand what you're building, present the proposed spec and get user approval.
 
 <HARD-GATE>
-Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+Once you are using brainstorming, do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a spec and the user has approved it. Do not force brainstorming onto pure structure-only cleanup that belongs in `superpowers:refactor-mode`.
 </HARD-GATE>
 
-## Anti-Pattern: "This Is Too Simple To Need A Design"
+## When Brainstorming Is The Right Tool
 
-Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+Use this skill when:
+- the user wants a new feature or behavior change, but the shape is still fuzzy
+- success criteria, constraints, or trade-offs are not yet crisp
+- multiple approaches are plausible and should be compared before coding
+
+Don't use this skill when:
+- the user asked for external comparison or similar-project research first → use `superpowers:project-landscape-analysis`
+- the work is a **behavior-frozen structural cleanup** → use `superpowers:refactor-mode`
+- the spec is already approved and you just need execution planning → use `superpowers:writing-plans`
+- the task is a tiny tactical fix with no meaningful design ambiguity
+
+## Anti-Pattern: "Force Questions Even When The Spec Is Already Clear"
+
+The point is not to maximize questions. The point is to remove material ambiguity before implementation.
+
+If the user already gave enough detail to draft a spec:
+- confirm the sharp edges briefly
+- present a draft spec early
+- only ask follow-up questions where the answer would materially change architecture, scope, verification, or UX
+
+A short spec is fine. A dead question loop is not.
 
 ## Checklist
 
@@ -23,10 +43,10 @@ You MUST create a task for each of these items and complete them in order:
 
 1. **Explore project context** — check files, docs, recent commits
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
-3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+3. **Ask clarifying questions** — one at a time, but only while material ambiguity remains
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+5. **Present spec** — in sections scaled to their complexity, get user approval after each section
+6. **Write spec doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -40,9 +60,9 @@ digraph brainstorming {
     "Offer Visual Companion\n(own message, no other content)" [shape=box];
     "Ask clarifying questions" [shape=box];
     "Propose 2-3 approaches" [shape=box];
-    "Present design sections" [shape=box];
+    "Present spec sections" [shape=box];
     "User approves design?" [shape=diamond];
-    "Write design doc" [shape=box];
+    "Write spec doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
     "User reviews spec?" [shape=diamond];
     "Invoke writing-plans skill" [shape=doublecircle];
@@ -52,18 +72,20 @@ digraph brainstorming {
     "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
     "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
     "Ask clarifying questions" -> "Propose 2-3 approaches";
-    "Propose 2-3 approaches" -> "Present design sections";
-    "Present design sections" -> "User approves design?";
-    "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Write design doc" [label="yes"];
-    "Write design doc" -> "Spec self-review\n(fix inline)";
+    "Propose 2-3 approaches" -> "Present spec sections";
+    "Present spec sections" -> "User approves design?";
+    "User approves design?" -> "Present spec sections" [label="no, revise"];
+    "User approves design?" -> "Write spec doc" [label="yes"];
+    "Write spec doc" -> "Spec self-review\n(fix inline)";
     "Spec self-review\n(fix inline)" -> "User reviews spec?";
-    "User reviews spec?" -> "Write design doc" [label="changes requested"];
+    "User reviews spec?" -> "Write spec doc" [label="changes requested"];
     "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
 }
 ```
 
 **The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+
+**Artifact boundary:** brainstorming writes the **spec** for human review; `writing-plans` later derives the **plan** for orchestration.
 
 ## The Process
 
@@ -72,7 +94,8 @@ digraph brainstorming {
 - Check out the current project state first (files, docs, recent commits)
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
-- For appropriately-scoped projects, ask questions one at a time to refine the idea
+- If the user already supplied clear purpose, constraints, and success criteria, move quickly to a draft spec instead of forcing a long question phase
+- For appropriately-scoped projects that are still unclear, ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
@@ -83,9 +106,9 @@ digraph brainstorming {
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
 
-**Presenting the design:**
+**Presenting the spec:**
 
-- Once you believe you understand what you're building, present the design
+- Once you believe you understand what you're building, present the spec
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
 - Ask after each section whether it looks right so far
 - Cover: architecture, components, data flow, error handling, testing
@@ -104,14 +127,14 @@ digraph brainstorming {
 - Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.
 - Don't propose unrelated refactoring. Stay focused on what serves the current goal.
 
-## After the Design
+## After the Spec
 
-**Documentation:**
+**Documentation (spec artifact):**
 
-- Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+- Write the validated spec to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
-- Commit the design document to git
+- Commit the spec document to git
 
 **Spec Self-Review:**
 After writing the spec document, look at it with fresh eyes:
@@ -130,9 +153,9 @@ After the spec review loop passes, ask the user to review the written spec befor
 
 Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
 
-**Implementation:**
+**Implementation handoff:**
 
-- Invoke the writing-plans skill to create a detailed implementation plan
+- Invoke the writing-plans skill to create the orchestration plan from the approved spec
 - Do NOT invoke any other skill. writing-plans is the next step.
 
 ## Key Principles

@@ -1,0 +1,1 @@
+This code still works, but the same session parsing logic now lives in two files and every new condition gets patched into both places. I don't want to add behavior yet. I want to freeze current behavior, consolidate the duplicated paths, and make the structure reusable before we keep going.

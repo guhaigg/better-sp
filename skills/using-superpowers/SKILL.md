@@ -48,9 +48,12 @@ Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-too
 ```dot
 digraph skill_flow {
     "User message received" [shape=doublecircle];
-    "About to EnterPlanMode?" [shape=doublecircle];
-    "Already brainstormed?" [shape=diamond];
+    "Need external comparison first?" [shape=diamond];
+    "Invoke project-landscape-analysis skill" [shape=box];
+    "Behavior unclear or feature-shaped?" [shape=diamond];
     "Invoke brainstorming skill" [shape=box];
+    "Structure-only cleanup with frozen behavior?" [shape=diamond];
+    "Invoke refactor-mode skill" [shape=box];
     "Might any skill apply?" [shape=diamond];
     "Invoke Skill tool" [shape=box];
     "Announce: 'Using [skill] to [purpose]'" [shape=box];
@@ -59,12 +62,17 @@ digraph skill_flow {
     "Follow skill exactly" [shape=box];
     "Respond (including clarifications)" [shape=doublecircle];
 
-    "About to EnterPlanMode?" -> "Already brainstormed?";
-    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
-    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "User message received" -> "Need external comparison first?";
+    "Need external comparison first?" -> "Invoke project-landscape-analysis skill" [label="yes"];
+    "Need external comparison first?" -> "Behavior unclear or feature-shaped?" [label="no"];
+    "Invoke project-landscape-analysis skill" -> "Behavior unclear or feature-shaped?";
+    "Behavior unclear or feature-shaped?" -> "Invoke brainstorming skill" [label="yes"];
+    "Behavior unclear or feature-shaped?" -> "Structure-only cleanup with frozen behavior?" [label="no"];
+    "Structure-only cleanup with frozen behavior?" -> "Invoke refactor-mode skill" [label="yes"];
+    "Structure-only cleanup with frozen behavior?" -> "Might any skill apply?" [label="no"];
+    "Invoke project-landscape-analysis skill" -> "Might any skill apply?";
     "Invoke brainstorming skill" -> "Might any skill apply?";
-
-    "User message received" -> "Might any skill apply?";
+    "Invoke refactor-mode skill" -> "Might any skill apply?";
     "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
     "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
     "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
@@ -98,10 +106,12 @@ These thoughts mean STOP—you're rationalizing:
 
 When multiple skills could apply, use this order:
 
-1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+1. **Process skills first** (project-landscape-analysis, brainstorming, refactor-mode, debugging) - these determine HOW to approach the task
 2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
 
+"Let's see how similar projects solve this first" → project-landscape-analysis, then brainstorming or writing-plans.
 "Let's build X" → brainstorming first, then implementation skills.
+"This works but the structure is getting patchy" → refactor-mode first, then planning/execution skills.
 "Fix this bug" → debugging first, then domain-specific skills.
 
 ## Skill Types

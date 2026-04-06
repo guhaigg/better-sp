@@ -4,7 +4,7 @@ Use this template when dispatching a code quality reviewer subagent.
 
 **Purpose:** Verify implementation is well-built (clean, tested, maintainable)
 
-**Only dispatch after spec compliance review passes.**
+**Dispatch only when the chosen review level requires quality review.**
 
 ```
 Task tool (superpowers:code-reviewer):
@@ -15,6 +15,8 @@ Task tool (superpowers:code-reviewer):
   BASE_SHA: [commit before task]
   HEAD_SHA: [current commit]
   DESCRIPTION: [task summary]
+  CHANGED_FILES: [explicit file list]
+  OUT_OF_SCOPE: [known unrelated files / debt]
 ```
 
 **In addition to standard code quality concerns, the reviewer should check:**
