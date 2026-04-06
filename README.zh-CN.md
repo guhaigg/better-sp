@@ -33,6 +33,59 @@
 - `engineering-knowledge-garden`
 - `gardener-mode`
 
+## 补充说明
+
+- 自定义 skill 与体系说明（含必要提醒）：
+  - `docs/better-sp-custom-skills-and-system.zh-CN.md`
+
+## 特殊标注版流程图
+
+图例：
+- **蓝色**：upstream 已有的基线 skill / 流程节点
+- **橙色**：better-sp 强化或新增的关键节点
+- **绿色**：我们新增的知识沉淀闭环
+
+```mermaid
+flowchart TD
+    A["用户请求"] --> R{"要不要先看外部参考？"}
+    R -- "要" --> S["project-landscape-analysis"]
+    R -- "不要" --> B{"当前是哪类工作？"}
+    S --> B
+    B -- "行为不清晰" --> C["brainstorming"]
+    B -- "行为冻结但结构混乱" --> D["refactor-mode"]
+    B -- "已足够明确" --> E["writing-plans"]
+    C --> E
+    D --> E
+    E --> F["executing-plans"]
+    F --> G["direct"]
+    F --> H["sidecar"]
+    F --> I["parallel"]
+    F --> J["high-assurance serial<br/>1 writer + readers"]
+    G --> K["requesting-code-review"]
+    H --> K
+    I --> K
+    J --> K
+    K --> L["finishing-a-development-branch"]
+    L --> M["engineering-knowledge-garden"]
+    S --> N["archive brief"]
+    N --> O["guidance brief"]
+    O --> C
+    O --> E
+    M --> P["distilled evergreen entries"]
+    P --> E
+    P --> F
+    P --> K
+    Q["gardener-mode"] --> M
+
+    classDef upstream fill:#e8f1ff,stroke:#4f7cff,color:#123;
+    classDef custom fill:#fff1e8,stroke:#ff8a3d,color:#432;
+    classDef garden fill:#ebfff1,stroke:#27ae60,color:#123;
+
+    class A,B,C,E,G,H,I,K,L upstream;
+    class S,D,F,J,Q custom;
+    class M,N,O,P garden;
+```
+
 ## 工作流总览
 
 ```mermaid

@@ -32,6 +32,11 @@ This repository currently tracks those changes in a fork/worktree form rather th
 - `engineering-knowledge-garden`
 - `gardener-mode`
 
+## Additional Notes
+
+- Custom skills and system notes:
+  - `docs/better-sp-custom-skills-and-system.md`
+
 ## Fork Architecture At A Glance
 
 ```mermaid
