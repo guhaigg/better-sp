@@ -226,10 +226,14 @@ or search for "superpowers" in the plugin marketplace.
 Tell Codex:
 
 ```
-Fetch and follow instructions from https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.codex/INSTALL.md
+Fetch and follow instructions from https://raw.githubusercontent.com/guhaigg/better-sp/refs/heads/main/.codex/INSTALL.md
 ```
 
 **Detailed docs:** [docs/README.codex.md](docs/README.codex.md)
+
+**Global activation note:** Codex native discovery should still mount this fork at `~/.agents/skills/superpowers` and point that symlink / junction at your `better-sp` `skills/` directory. Do **not** mount both `superpowers` and `better-sp` trees at the same time or you may get duplicate skills.
+
+**Recommended live layout:** keep a stable clone such as `~/.codex/better-sp` as the global mount target. Use a worktree target only during active skill development, then switch the live mount back to the stable clone before normal daily use.
 
 ### OpenCode
 

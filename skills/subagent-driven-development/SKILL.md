@@ -9,7 +9,7 @@ Execute a plan in the current session when the active task needs a **single coor
 
 **Why subagents:** You delegate bounded work to specialized agents with isolated context. The controller keeps orchestration, task routing, and integration local.
 
-**Core principle:** One writer for one write scope, optional read-only sidecars, and review intensity matched to risk.
+**Core principle:** One writer for one write scope, optional read-only sidecars, review intensity matched to risk, and no silent mutation of the locked deliverable boundary.
 
 ## When to Use
 
@@ -52,6 +52,13 @@ When this skill executes a task from `superpowers:writing-plans`, the controller
 - `Execution Recommendation`
 - `Review Level`
 
+If the upstream brief/spec/plan already locked any of these, carry them forward explicitly:
+- deliverable shape
+- primary user
+- entry surface
+- success criteria
+- non-equivalent downgrade warnings
+
 Do not reconstruct these from memory if the plan already provides them.
 
 ## Controller Rules
@@ -62,8 +69,10 @@ Do not reconstruct these from memory if the plan already provides them.
    - explorer: find impacted call sites / dependencies
    - verifier: run tests that don't depend on the pending patch
    - reviewer: inspect a bounded diff or checklist
+   - read-only sidecars may analyze and recommend, but may not create, modify, or delete files
 4. **Do not spawn and immediately wait.** After dispatching any subagent, finish all non-blocking controller work before calling `wait_agent`.
 5. **Review intensity follows risk.** Do not default every task to spec review plus code-quality review.
+6. **Do not silently downgrade delivery shape.** If the task is supposed to ship a feature/page/panel/entry, neither controller nor implementer may quietly shrink it into CLI/tooling/internal-only work.
 
 ## Review Levels
 
@@ -177,6 +186,10 @@ Do not force repeated retries without changing anything.
 - `./spec-reviewer-prompt.md` - bounded spec compliance review
 - `./code-quality-reviewer-prompt.md` - bounded quality review
 
+All prompts should make two things explicit when relevant:
+- whether the subagent is a writer or read-only sidecar
+- which delivery boundary may not be silently changed
+
 ## Example Workflow
 
 ```
@@ -229,6 +242,8 @@ Reviewer: ✅ Matches checklist, no extra scope
 - Default every task to L2 review
 - Move review scope beyond the relevant diff / checklist
 - Move to the next task while required review issues are still open
+- Let a read-only sidecar “helpfully” write docs / logs / notes
+- Let an implementer quietly convert a user-facing deliverable into a smaller internal tool
 
 **If subagent asks questions:**
 - Answer clearly
@@ -239,6 +254,11 @@ Reviewer: ✅ Matches checklist, no extra scope
 - Fix only the actual issues
 - Re-run only the required review level
 - Do not automatically repeat both reviews unless risk justifies it
+
+**If delivery shape looks wrong during execution:**
+- stop
+- compare current work against the locked boundary
+- either restore the intended shape or escalate before proceeding
 
 ## Integration
 

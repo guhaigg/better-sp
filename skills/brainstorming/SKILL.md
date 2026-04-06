@@ -13,6 +13,20 @@ Start by understanding the current project context, then ask questions only as n
 Once you are using brainstorming, do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a spec and the user has approved it. Do not force brainstorming onto pure structure-only cleanup that belongs in `superpowers:refactor-mode`.
 </HARD-GATE>
 
+## Front-Layer Gate: Intent Before Spec
+
+Before you brainstorm architecture or implementation shape, first normalize the user's shorthand into a lightweight **Intent Brief**.
+
+This is especially important when the request contains product-shaped language such as:
+- page / feature / center / panel / settings / entry / one-click / workflow / experience
+- or brief requests like “做个中心 / 加个功能页 / 顺一下体验 / 支持一下修复”
+
+Your first job is **not** to guess the easiest implementation. Your first job is to understand what the user is actually asking to ship.
+
+**Core rule:** expand the shorthand, do not mutate the target.
+
+If a wrong guess would change the deliverable shape, primary user, entry surface, or success criteria, do not silently decide it.
+
 ## When Brainstorming Is The Right Tool
 
 Use this skill when:
@@ -35,27 +49,32 @@ If the user already gave enough detail to draft a spec:
 - present a draft spec early
 - only ask follow-up questions where the answer would materially change architecture, scope, verification, or UX
 
-A short spec is fine. A dead question loop is not.
+A short spec is fine. A dead question loop is not. “Simple” still is not permission to skip the spec entirely.
 
 ## Checklist
 
 You MUST create a task for each of these items and complete them in order:
 
 1. **Explore project context** — check files, docs, recent commits
-2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
-3. **Ask clarifying questions** — one at a time, but only while material ambiguity remains
-4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present spec** — in sections scaled to their complexity, get user approval after each section
-6. **Write spec doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+2. **Normalize intent** — produce a lightweight Intent Brief: explicit ask, interpreted goal, deliverable shape, primary user, entry surface, success criteria, dangerous ambiguities
+3. **Lock deliverable shape** — if the shape is still dangerous to guess, ask one critical clarification question before broader spec work
+4. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
+5. **Ask clarifying questions** — one at a time, but only while material ambiguity remains
+6. **Propose 2-3 approaches** — with trade-offs and your recommendation
+7. **Present spec** — in sections scaled to their complexity, get user approval after each section
+8. **Write spec doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+9. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
+10. **User reviews written spec** — ask user to review the spec file before proceeding
+11. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
 ```dot
 digraph brainstorming {
     "Explore project context" [shape=box];
+    "Intent Brief + shape lock" [shape=box];
+    "Dangerous shape ambiguity?" [shape=diamond];
+    "Ask 1 critical clarification" [shape=box];
     "Visual questions ahead?" [shape=diamond];
     "Offer Visual Companion\n(own message, no other content)" [shape=box];
     "Ask clarifying questions" [shape=box];
@@ -67,7 +86,11 @@ digraph brainstorming {
     "User reviews spec?" [shape=diamond];
     "Invoke writing-plans skill" [shape=doublecircle];
 
-    "Explore project context" -> "Visual questions ahead?";
+    "Explore project context" -> "Intent Brief + shape lock";
+    "Intent Brief + shape lock" -> "Dangerous shape ambiguity?";
+    "Dangerous shape ambiguity?" -> "Ask 1 critical clarification" [label="yes"];
+    "Dangerous shape ambiguity?" -> "Visual questions ahead?" [label="no"];
+    "Ask 1 critical clarification" -> "Visual questions ahead?";
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
     "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
     "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
@@ -92,13 +115,22 @@ digraph brainstorming {
 **Understanding the idea:**
 
 - Check out the current project state first (files, docs, recent commits)
+- Before broader spec work, normalize the user's shorthand into a brief understanding of:
+  - what they explicitly asked for
+  - what you think they intend to ship
+  - the likely deliverable shape
+  - the primary user
+  - the likely entry surface
+  - the success criteria
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
+- If the request is product-shaped but brief, do **not** silently reinterpret it into the easiest internal tool, script, or CLI. Feature/page/center/entry requests are not equivalent to tooling unless the user explicitly accepts that downgrade.
 - If the user already supplied clear purpose, constraints, and success criteria, move quickly to a draft spec instead of forcing a long question phase
 - For appropriately-scoped projects that are still unclear, ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
+- If you need clarification, prefer the **one critical question** that decides deliverable shape or success criteria over several lower-value questions.
 
 **Exploring approaches:**
 
@@ -143,6 +175,7 @@ After writing the spec document, look at it with fresh eyes:
 2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
 3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
 4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
+5. **Deliverable-shape check:** Did you preserve the user's intended shape, user, entry surface, and success criteria — or did you silently shrink it into a tool/script/CLI?
 
 Fix any issues inline. No need to re-review — just fix and move on.
 

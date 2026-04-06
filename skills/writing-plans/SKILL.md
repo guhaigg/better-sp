@@ -13,6 +13,8 @@ Write implementation plans that are executable by an agent with minimal guesswor
 
 Assume the implementer is skilled but lacks context, pattern judgment, and write-scope awareness. Spell out boundaries.
 
+A plan must preserve the already-approved delivery boundary. Planning is **not** the stage where you silently reinterpret the user's goal into a smaller or more internal deliverable.
+
 **Artifact boundary:** the spec is for human review; the plan is for agent execution and routing.
 If the source document came from `superpowers:refactor-mode`, preserve the behavior freeze, seam map, migration order, and temporary-scaffolding removal steps in the plan.
 If relevant project knowledge exists, do one bounded lookup via `superpowers:engineering-knowledge-garden` and record only the entries that materially affected decomposition.
@@ -24,7 +26,16 @@ If relevant project knowledge exists, do one bounded lookup via `superpowers:eng
 **Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
 - (User preferences for plan location override this default)
 
-## Scope Check
+## Scope Check + Input Contract From The Front Layer
+
+If brainstorming or an upstream intent-normalization step established any of the following, treat them as locked inputs unless the spec explicitly changed them:
+- deliverable shape
+- primary user
+- entry surface
+- success criteria
+- non-equivalent downgrades to avoid
+
+Planning may refine execution. Planning may **not** silently downgrade a feature/page/entry into a script, CLI, or internal-only tool.
 
 If the spec covers multiple independent subsystems, it should have been split during brainstorming. If it wasn't:
 - propose separate plans per subsystem, or
@@ -89,6 +100,13 @@ Do not explode one task into dozens of tiny tasks if they share one write scope.
 **Architecture:** [2-3 sentences about approach]
 
 **Tech Stack:** [Key technologies/libraries]
+
+**Delivery Constraints:**
+- Shape: [feature/page/panel/entry/CLI/service]
+- Primary user: [who this is for]
+- Entry surface: [where the user reaches it]
+- Success criteria: [what must still be true when work is done]
+- Downgrade to avoid: [what would be smaller but wrong]
 
 **Execution Notes:**
 - Parallel-safe tasks: [Task numbers or `none`]
@@ -167,6 +185,8 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - Missing routing metadata
 - `Execution Recommendation: parallel` without a bounded write scope
 - `Potential Conflicts: none` when tasks clearly touch the same file family
+- Silently shrinking a user-facing deliverable into a smaller internal tool
+- Treating “minimal diff” as a sufficient reason to drop required layers of delivery
 
 ## Execution Recommendation Guidance
 
@@ -230,7 +250,9 @@ After writing the complete plan, check it yourself.
 
 **4. Routing sanity:** For every task marked `parallel`, is the write scope truly isolated? For every task marked `high-assurance-serial`, is the conflict or risk explicit?
 
-**5. Wait-risk scan:** If execution started now, would the controller know:
+**5. Boundary preservation:** Does the plan still satisfy the locked delivery boundary, or did it quietly optimize for a smaller-but-wrong implementation?
+
+**6. Wait-risk scan:** If execution started now, would the controller know:
 - which tasks can run together
 - which tasks must serialize
 - which sidecars can run while a writer is busy

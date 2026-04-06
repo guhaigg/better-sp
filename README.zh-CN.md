@@ -265,12 +265,32 @@ refactor 不是“继续写功能，只是顺手清理一下”。
 
 ## 安装
 
-安装方式仍然沿用 Superpowers 原有平台分发方式：
+安装方式仍然沿用 Superpowers 原有平台分发方式，但 **Codex 的全局挂载建议直接复用 `~/.agents/skills/superpowers` 这个入口名**，把它指到 `better-sp` 的 `skills/` 目录。
 
 - Claude Code / Cursor：插件市场
 - Codex：看 `docs/README.codex.md`
 - OpenCode：看 `docs/README.opencode.md`
 - Gemini CLI：扩展安装
+
+Codex 下的关键点是：
+- 全局生效不是改 `config.toml`
+- 而是让 `~/.agents/skills/superpowers` 这个 symlink / junction 指向你的 `better-sp/skills`
+- 然后 **重启 Codex**
+- **不要同时再挂一个 `better-sp` 入口**，否则可能出现重复发现同名技能
+
+推荐的长期形态是：
+- 用稳定 clone，例如 `~/.codex/better-sp` 作为全局技能源
+- `~/.agents/skills/superpowers` 始终只指向这一套稳定 `skills/`
+- worktree 只在你主动开发 / 调试 skill 时临时挂载
+- 验证完再切回稳定 clone
+
+如果你之前一直在用原版 `~/.codex/superpowers`，正确迁移顺序是：
+1. 先准备好 `~/.codex/better-sp`
+2. 再把 `~/.agents/skills/superpowers` 改指到 `~/.codex/better-sp/skills`
+3. 重启 Codex
+4. 最后再删除旧的 `~/.codex/superpowers`
+
+不要在仍有 worktree 依赖旧仓库 `.git` 元数据时先删旧仓库。
 
 平台细节请优先看英文 README 与对应安装文档。
 

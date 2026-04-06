@@ -9,6 +9,8 @@ Delegate independent work to specialized agents with isolated context. Paralleli
 
 **Core principle:** Dispatch one agent per independent domain, and if write scopes collide, degrade to **single writer + parallel readers**, not **single writer + waiting**.
 
+**Reader rule:** Read-only means **no file mutation**. Readers/explorers/auditors may analyze and recommend, but they may not create, modify, or delete files — even docs, logs, or “helpful” summaries.
+
 ## When to Use
 
 ```dot
@@ -48,6 +50,13 @@ When used to execute plan tasks, prefer task metadata from `superpowers:writing-
 - `Execution Recommendation`
 - `Review Level`
 
+If an upstream brief or spec already locked any of these, carry them into worker prompts:
+- deliverable shape
+- primary user
+- entry surface
+- success criteria
+- non-equivalent downgrade warnings
+
 The key routing question is simple: are the write scopes actually disjoint? If not, keep one writer and preserve read-only parallelism.
 
 ## The Pattern
@@ -57,6 +66,12 @@ The key routing question is simple: are the write scopes actually disjoint? If n
 Split work into:
 - **writer tasks** — code changes in a bounded write scope
 - **reader tasks** — exploration, verification, bounded review, test runs, log analysis
+
+Reader tasks are strictly non-mutating:
+- no creating files
+- no editing files
+- no deleting files
+- no “I already analyzed it, so I wrote it down for convenience”
 
 ### 2. Prefer Parallel Writers When Safe
 
@@ -90,6 +105,8 @@ Good prompts are:
 1. **Focused** — one domain or one read-only purpose
 2. **Bounded** — explicit files / tests / checklist / exclusions
 3. **Specific about output** — root cause, changes, or verification result
+4. **Explicit about write rights** — whether the agent is a writer or a read-only sidecar
+5. **Preserve delivery boundary** — if the shape is already locked, say what may not be downgraded
 
 ## Common Mistakes
 
@@ -105,13 +122,21 @@ Good prompts are:
 **❌ Two writers editing same file family**
 **✅ Better:** one writer, others stay read-only
 
+**❌ Read-only sidecar “helpfully” updates docs / logs / notes**
+**✅ Better:** sidecar returns recommendations; writer or controller decides what to write
+
+**❌ Worker quietly downgrades feature/page/entry work into CLI/tooling**
+**✅ Better:** keep the locked deliverable shape, or escalate the downgrade decision to the controller
+
 ## Verification
 
 After agents return:
 1. Review each summary
 2. Check write-scope conflicts
-3. Integrate or redirect follow-up work
-4. Run relevant local verification
+3. Confirm read-only sidecars did not mutate files
+4. Confirm no worker silently changed the locked deliverable shape
+5. Integrate or redirect follow-up work
+6. Run relevant local verification
 
 ## Real-World Impact
 
