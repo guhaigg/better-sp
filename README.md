@@ -23,6 +23,8 @@ This repository currently tracks those changes in a fork/worktree form rather th
 - Google Gemini CLI context / custom memory patterns — for progressive disclosure and project-vs-global context separation
 
 **What this fork is trying to add**
+- intent-before-spec front-layer intake (`Intent Brief` + deliverable-shape lock)
+- locked delivery boundary carried through planning and execution
 - single execution entry via `executing-plans`
 - no user-facing “pick an internal execution mode” handoff
 - `shared write scope -> 1 writer + readers`
@@ -46,19 +48,20 @@ Legend:
 
 ```mermaid
 flowchart TD
-    A["User request"] --> R{"Need outside references first?"}
+    A["User request"] --> A1["front-layer intake<br/>Intent Brief + shape lock"]
+    A1 --> R{"Need outside references first?"}
     R -- "Yes" --> S["project-landscape-analysis"]
     R -- "No" --> B{"What kind of work is this?"}
     S --> B
-    B -- "Behavior unclear" --> C["brainstorming"]
-    B -- "Behavior frozen but structure messy" --> D["refactor-mode"]
-    B -- "Already clear enough" --> E["writing-plans"]
+    B -- "Behavior / product shape unclear" --> C["brainstorming<br/>reviewed spec"]
+    B -- "Behavior frozen but structure messy" --> D["refactor-mode<br/>refactor brief"]
+    B -- "Already clear enough" --> E["writing-plans<br/>delivery constraints + routing metadata"]
     C --> E
     D --> E
-    E --> F["executing-plans"]
+    E --> F["executing-plans<br/>single execution entry"]
     F --> G["direct"]
-    F --> H["sidecar"]
-    F --> I["parallel"]
+    F --> H["read-only sidecar"]
+    F --> I["parallel writers"]
     F --> J["high-assurance serial<br/>1 writer + readers"]
     G --> K["requesting-code-review"]
     H --> K
@@ -81,15 +84,21 @@ flowchart TD
     classDef garden fill:#ebfff1,stroke:#27ae60,color:#123;
 
     class A,B,C,E,G,H,I,K,L upstream;
-    class S,D,F,J,Q custom;
+    class A1,S,D,F,J,Q custom;
     class M,N,O,P garden;
 ```
+
+**Note:** the “front-layer intake” is not a separate published skill yet. In this branch it is mainly embodied by:
+- `brainstorming` starting with `Intent Brief + shape lock`
+- `writing-plans` preserving locked delivery constraints
+- `executing-plans` preserving the locked delivery boundary during routing
 
 ## Fork Architecture At A Glance
 
 ```mermaid
 flowchart TD
-    A["User request"] --> R{"Need outside references first?"}
+    A["User request"] --> A1["front-layer intake<br/>Intent Brief + shape lock"]
+    A1 --> R{"Need outside references first?"}
     R -- "Yes" --> S["project-landscape-analysis<br/>research + archive + guidance"]
     R -- "No" --> B{"What kind of work is this?"}
     S --> B
@@ -110,6 +119,24 @@ flowchart TD
     K --> L["finishing-a-development-branch"]
     L --> M["batch capture / distill durable lessons"]
 ```
+
+## Front Layer And Delivery Boundary
+
+This branch now treats brief product-shaped requests more explicitly before planning or execution. The goal is to expand shorthand without silently mutating the target deliverable.
+
+```mermaid
+flowchart LR
+    A["Brief / product-shaped ask"] --> B["Intent Brief<br/>explicit ask + interpreted goal"]
+    B --> C["Shape lock<br/>user + entry + interaction + success"]
+    C --> D["Reviewed spec<br/>brainstorming"]
+    D --> E["Executable plan<br/>delivery constraints + routing metadata"]
+    E --> F["Routed execution<br/>preserve locked boundary"]
+```
+
+In practice that means:
+- `brainstorming` should not silently turn a page / center / one-click request into an internal script or CLI
+- `writing-plans` should carry shape, user, entry surface, and downgrade warnings into the plan header
+- `executing-plans` should route work internally **without** using routing as permission to reinterpret the approved goal
 
 ## Research -> Archive -> Distilled Garden Loop
 
@@ -163,9 +190,9 @@ It starts from the moment you fire up your coding agent. As soon as it sees that
 
 If the problem needs outside comparison first, `project-landscape-analysis` does bounded research, archives the full brief, and hands only a compressed guidance card forward. That creates a clean **research -> archive -> guidance** split instead of stuffing raw notes into the working prompt.
 
-Once the target behavior is clear enough, `brainstorming` produces the **spec** — the human review artifact. If the behavior is already frozen and the real problem is structural cleanup, `refactor-mode` produces a **refactor brief** instead.
+If the request is brief or product-shaped, the front layer first normalizes it into an `Intent Brief` and locks the intended delivery boundary. Once the target behavior is clear enough, `brainstorming` produces the **spec** — the human review artifact. If the behavior is already frozen and the real problem is structural cleanup, `refactor-mode` produces a **refactor brief** instead.
 
-After that, `writing-plans` produces the **plan** — the orchestration artifact. The point is not just “what to build,” but also exact write scope, risk, routing, and verification so the controller can keep moving without asking the human to pick internal execution strategies.
+After that, `writing-plans` produces the **plan** — the orchestration artifact. The point is not just “what to build,” but also exact write scope, risk, routing, verification, and locked delivery constraints so the controller can keep moving without asking the human to pick internal execution strategies.
 
 Then `executing-plans` becomes the single execution entry. It routes tasks into direct work, read-only sidecars, safe parallel writers, or high-assurance serial execution. When the real write scope collapses, it should degrade to **1 writer + readers**, not “spawn one agent and wait.”
 
@@ -274,15 +301,15 @@ Start a new session in your chosen platform and ask for something that should tr
 
 1. **project-landscape-analysis** - Activates when a greenfield project, new subsystem, or expensive architecture choice should first be compared against external references. It performs a bypass check, prefers secondary sources, archives the full brief, and passes only a compressed guidance card downstream.
 
-2. **brainstorming** - Activates when behavior or feature shape is still unclear. It no longer tries to own every possible non-trivial task, and it should not force dead clarification loops once the spec is already sharp.
+2. **brainstorming** - Activates when behavior or feature shape is still unclear. It now starts with an `Intent Brief` and deliverable-shape lock for brief or product-shaped asks, and it should not force dead clarification loops once the spec is already sharp.
 
 3. **refactor-mode** - Activates when behavior is mostly frozen but the code has become patchy, duplicated, or hard to reuse. Produces a refactor brief before structural cleanup.
 
 4. **using-git-worktrees** - Activates after design or refactor approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
 
-5. **writing-plans** - Activates with approved spec or refactor brief. Produces the orchestration plan: bite-sized tasks with exact file paths, verification steps, write scope, conflict notes, routing recommendation, and review level.
+5. **writing-plans** - Activates with approved spec or refactor brief. Produces the orchestration plan: bite-sized tasks with exact file paths, verification steps, write scope, conflict notes, routing recommendation, review level, and locked delivery constraints.
 
-6. **executing-plans** - Activates with plan. Acts as the single execution entry point and routes each task into direct execution, sidecar help, parallel dispatch, or high-assurance serial execution.
+6. **executing-plans** - Activates with plan. Acts as the single execution entry point, routes each task into direct execution, sidecar help, parallel dispatch, or high-assurance serial execution, and preserves the locked delivery boundary during routing.
 
 7. **test-driven-development** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
 
@@ -295,6 +322,15 @@ Start a new session in your chosen platform and ask for something that should tr
 11. **gardener-mode** - Activates as a separate maintenance workflow to validate, audit, distill archive backlog, and prune the knowledge garden without blocking everyday implementation.
 
 **The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
+
+## Current Hardening Direction
+
+This branch is stronger at preserving product-shaped deliverables than earlier versions, but it still has one obvious next hardening target:
+
+- **current strength:** better front-layer handling of brief requests, shape lock, and internal routing boundaries
+- **next hardening:** more explicit runtime-contract planning for integration-sensitive work such as patching, bridge code, restart flows, self-mutation, and old-variant upgrades
+
+That next step is about closing implementation risk, not re-opening user-facing execution choices.
 
 ## Pressure-Tested Behaviors
 

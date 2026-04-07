@@ -24,6 +24,8 @@
 
 ## 这个分叉想补什么
 
+- `Intent Brief + deliverable-shape lock` 这一层前置收口
+- 把锁定的交付边界一路带进 planning / execution
 - `executing-plans` 作为**单一执行入口**
 - 不再把“选内部执行模式”甩给用户
 - `shared write scope -> 1 writer + readers`
@@ -47,19 +49,20 @@
 
 ```mermaid
 flowchart TD
-    A["用户请求"] --> R{"要不要先看外部参考？"}
+    A["用户请求"] --> A1["前置 intake<br/>Intent Brief + shape lock"]
+    A1 --> R{"要不要先看外部参考？"}
     R -- "要" --> S["project-landscape-analysis"]
     R -- "不要" --> B{"当前是哪类工作？"}
     S --> B
-    B -- "行为不清晰" --> C["brainstorming"]
-    B -- "行为冻结但结构混乱" --> D["refactor-mode"]
-    B -- "已足够明确" --> E["writing-plans"]
+    B -- "行为 / 产品形态不清晰" --> C["brainstorming<br/>reviewed spec"]
+    B -- "行为冻结但结构混乱" --> D["refactor-mode<br/>refactor brief"]
+    B -- "已足够明确" --> E["writing-plans<br/>交付约束 + 路由元数据"]
     C --> E
     D --> E
-    E --> F["executing-plans"]
+    E --> F["executing-plans<br/>唯一执行入口"]
     F --> G["direct"]
-    F --> H["sidecar"]
-    F --> I["parallel"]
+    F --> H["只读 sidecar"]
+    F --> I["parallel writers"]
     F --> J["high-assurance serial<br/>1 writer + readers"]
     G --> K["requesting-code-review"]
     H --> K
@@ -82,15 +85,21 @@ flowchart TD
     classDef garden fill:#ebfff1,stroke:#27ae60,color:#123;
 
     class A,B,C,E,G,H,I,K,L upstream;
-    class S,D,F,J,Q custom;
+    class A1,S,D,F,J,Q custom;
     class M,N,O,P garden;
 ```
+
+**说明：** 这里的“前置 intake”还不是一个独立发布出来的新 skill。在当前分支里，它主要体现为：
+- `brainstorming` 先做 `Intent Brief + shape lock`
+- `writing-plans` 把锁定的交付约束写进 plan
+- `executing-plans` 在路由执行时继续保持这个交付边界
 
 ## 工作流总览
 
 ```mermaid
 flowchart TD
-    A["用户请求"] --> R{"要不要先看外部参考？"}
+    A["用户请求"] --> A1["前置 intake<br/>Intent Brief + shape lock"]
+    A1 --> R{"要不要先看外部参考？"}
     R -- "要" --> S["project-landscape-analysis<br/>研究 + 归档 + 压缩指引"]
     R -- "不要" --> B{"当前到底是哪类工作？"}
     S --> B
@@ -111,6 +120,24 @@ flowchart TD
     K --> L["finishing-a-development-branch"]
     L --> M["批量沉淀 / 蒸馏 durable lessons"]
 ```
+
+## 前置层与交付边界
+
+这个分支现在更明确地把“简略但产品化”的请求先收口，再进入 planning / execution。核心目标是：**扩写用户简略表达，而不是偷换交付物。**
+
+```mermaid
+flowchart LR
+    A["简略 / 产品化请求"] --> B["Intent Brief<br/>显式需求 + 解释后的目标"]
+    B --> C["shape lock<br/>用户 + 入口 + 交互 + 成功标准"]
+    C --> D["Reviewed spec<br/>brainstorming"]
+    D --> E["Executable plan<br/>交付约束 + 路由元数据"]
+    E --> F["Routed execution<br/>继续保持交付边界"]
+```
+
+落到实际 skill 上就是：
+- `brainstorming` 不该把页面 / 中心 / 一键修复静默降级成内部脚本或 CLI
+- `writing-plans` 需要把 shape、primary user、entry surface、downgrade warning 写进 plan header
+- `executing-plans` 负责内部路由，但**不能**借路由之名重解释已经确认过的目标
 
 ## Research -> Archive -> Distilled Garden 闭环
 
@@ -160,7 +187,22 @@ flowchart LR
 
 ## 它和原版相比，核心差异是什么
 
-### 1. 不再默认“派一个子代理然后硬等”
+### 1. 多了一层“Intent Brief + 交付形态锁定”
+
+对于简略但明显带产品形态的请求，better-sp 现在更强调：
+- 先扩写用户表达
+- 再锁定交付形态
+- 然后才进入 spec / plan
+
+也就是先问清：
+- 这是给谁的
+- 从哪里进入
+- 交互形态是什么
+- 什么才算真正完成
+
+而不是直接挑一个最容易实现的内部形态。
+
+### 2. 不再默认“派一个子代理然后硬等”
 
 `executing-plans` 不应该把子代理当成用户可见模式，而应该把它当成**内部路由策略**。
 
@@ -169,19 +211,19 @@ flowchart LR
 - 有只读 sidecar 能并行，就先并行
 - 只有真正阻塞时才等待
 
-### 2. 共享写入范围时，不是假并行，而是 **1 writer + readers**
+### 3. 共享写入范围时，不是假并行，而是 **1 writer + readers**
 
 一旦真实写入范围收敛到同一组文件：
 - 不再继续多 writer 乱写
 - 也不该让 controller 直接空等
 - 正确退化方式是：**单 writer + 只读 explorer / verifier / reviewer**
 
-### 3. `spec` 和 `plan` 明确分离
+### 4. `spec` 和 `plan` 明确分离
 
 - **spec**：给人 review，用来确认“要做什么”
 - **plan**：给 agent 编排，用来确认“怎么拆、谁能并行、哪儿会冲突、如何验证”
 
-### 4. `refactor-mode` 把“结构收口”从 feature patch 流里拆出来
+### 5. `refactor-mode` 把“结构收口”从 feature patch 流里拆出来
 
 refactor 不是“继续写功能，只是顺手清理一下”。
 
@@ -192,7 +234,7 @@ refactor 不是“继续写功能，只是顺手清理一下”。
 - Migration Order
 - Temporary Scaffolding
 
-### 5. `engineering-knowledge-garden` 负责项目记忆，别再污染 `AGENTS.md`
+### 6. `engineering-knowledge-garden` 负责项目记忆，别再污染 `AGENTS.md`
 
 项目知识应该：
 - 小
@@ -218,16 +260,16 @@ refactor 不是“继续写功能，只是顺手清理一下”。
    先做 bypass check；优先二手分析而不是直接啃 repo；完整研究进入 archive，再抽 guidance brief 传下游。
 
 2. **brainstorming**  
-   只在真的需要澄清行为时问问题，不再为了“显得严谨”强行问题循环。
+   先做 `Intent Brief + shape lock`，只在真的需要澄清行为时问问题，不再为了“显得严谨”强行问题循环。
 
 3. **refactor-mode**  
    行为冻结 + 结构收口的独立入口。
 
 4. **writing-plans**  
-   plan 是 orchestration artifact，要写清 write scope、冲突、验证、路由建议、Knowledge Inputs。
+   plan 是 orchestration artifact，要写清 write scope、冲突、验证、路由建议、Knowledge Inputs，以及锁定的交付约束。
 
 5. **executing-plans**  
-   单一执行入口；内部决定 direct / sidecar / parallel / high-assurance-serial。
+   单一执行入口；内部决定 direct / sidecar / parallel / high-assurance-serial，并在执行中继续保持锁定的交付边界。
 
 6. **engineering-knowledge-garden**  
    负责 lookup / archive / guidance / distill / capture / prune。
@@ -262,6 +304,15 @@ refactor 不是“继续写功能，只是顺手清理一下”。
   - `git diff --check`
 
 目标不是把 fork 变成重型流水线，而是给 workflow / garden contract 一层便宜但有用的回归保护。
+
+## 当前继续强化的方向
+
+这个分支现在已经更擅长守住“产品形态别跑偏”，但下一个明显要继续补强的方向是：
+
+- **当前更强的部分：** 简略请求的前置收口、交付形态锁定、以及 execution routing 时继续保持交付边界
+- **下一步要补的部分：** 对 patch / bridge / restart / self-mutation / old variant upgrade 这类集成敏感任务，把 runtime contract 写得更硬、更早
+
+也就是说，下一步不是把内部模式重新暴露给用户，而是把实现层收口做得更扎实。
 
 ## 安装
 

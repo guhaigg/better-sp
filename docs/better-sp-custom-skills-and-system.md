@@ -41,19 +41,20 @@ Legend:
 
 ```mermaid
 flowchart TD
-    A["User request"] --> R{"Need outside references first?"}
+    A["User request"] --> A1["front-layer intake<br/>Intent Brief + shape lock"]
+    A1 --> R{"Need outside references first?"}
     R -- "Yes" --> S["project-landscape-analysis"]
     R -- "No" --> B{"What kind of work is this?"}
     S --> B
-    B -- "Behavior unclear" --> C["brainstorming"]
-    B -- "Behavior frozen but structure messy" --> D["refactor-mode"]
-    B -- "Already clear enough" --> E["writing-plans"]
+    B -- "Behavior / product shape unclear" --> C["brainstorming<br/>reviewed spec"]
+    B -- "Behavior frozen but structure messy" --> D["refactor-mode<br/>refactor brief"]
+    B -- "Already clear enough" --> E["writing-plans<br/>delivery constraints + routing metadata"]
     C --> E
     D --> E
-    E --> F["executing-plans"]
+    E --> F["executing-plans<br/>single execution entry"]
     F --> G["direct"]
-    F --> H["sidecar"]
-    F --> I["parallel"]
+    F --> H["read-only sidecar"]
+    F --> I["parallel writers"]
     F --> J["high-assurance serial<br/>1 writer + readers"]
     G --> K["requesting-code-review"]
     H --> K
@@ -76,8 +77,26 @@ flowchart TD
     classDef garden fill:#ebfff1,stroke:#27ae60,color:#123;
 
     class A,B,C,E,G,H,I,K,L upstream;
-    class S,D,F,J,Q custom;
+    class A1,S,D,F,J,Q custom;
     class M,N,O,P garden;
+```
+
+**Note:** the front-layer intake is not a separate published skill yet. In this branch it is mainly expressed through:
+- `brainstorming` starting with `Intent Brief + shape lock`
+- `writing-plans` preserving locked delivery constraints
+- `executing-plans` preserving the locked delivery boundary during routing
+
+## Front Layer And Delivery Boundary
+
+One of the most important hardenings in this branch is that brief product-shaped asks should be expanded before planning or execution, not silently mutated into a smaller internal deliverable.
+
+```mermaid
+flowchart LR
+    A["Brief / product-shaped ask"] --> B["Intent Brief<br/>explicit ask + interpreted goal"]
+    B --> C["Shape lock<br/>user + entry + interaction + success"]
+    C --> D["Reviewed spec<br/>brainstorming"]
+    D --> E["Executable plan<br/>delivery constraints + routing metadata"]
+    E --> F["Routed execution<br/>preserve locked boundary"]
 ```
 
 ## The main custom / strengthened skills
@@ -129,6 +148,7 @@ Required caution:
 - this is an internal router, not a user menu
 - if runtime write scope contradicts the original plan, re-route
 - do not default to immediate waiting while useful controller work still exists
+- routing is not permission to shrink the locked deliverable boundary
 
 ---
 

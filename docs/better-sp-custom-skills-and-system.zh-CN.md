@@ -27,6 +27,68 @@ better-sp 不是脱离 [obra/superpowers](https://github.com/obra/superpowers) �
 
 ## 我们新增 / 强化了哪些核心 Skill
 
+## 特殊标注版流程图
+
+```mermaid
+flowchart TD
+    A["用户请求"] --> A1["前置 intake<br/>Intent Brief + shape lock"]
+    A1 --> R{"要不要先看外部参考？"}
+    R -- "要" --> S["project-landscape-analysis"]
+    R -- "不要" --> B{"当前是哪类工作？"}
+    S --> B
+    B -- "行为 / 产品形态不清晰" --> C["brainstorming<br/>reviewed spec"]
+    B -- "行为冻结但结构混乱" --> D["refactor-mode<br/>refactor brief"]
+    B -- "已足够明确" --> E["writing-plans<br/>交付约束 + 路由元数据"]
+    C --> E
+    D --> E
+    E --> F["executing-plans<br/>唯一执行入口"]
+    F --> G["direct"]
+    F --> H["只读 sidecar"]
+    F --> I["parallel writers"]
+    F --> J["high-assurance serial<br/>1 writer + readers"]
+    G --> K["requesting-code-review"]
+    H --> K
+    I --> K
+    J --> K
+    K --> L["finishing-a-development-branch"]
+    L --> M["engineering-knowledge-garden"]
+    S --> N["archive brief"]
+    N --> O["guidance brief"]
+    O --> C
+    O --> E
+    M --> P["distilled evergreen entries"]
+    P --> E
+    P --> F
+    P --> K
+    Q["gardener-mode"] --> M
+
+    classDef upstream fill:#e8f1ff,stroke:#4f7cff,color:#123;
+    classDef custom fill:#fff1e8,stroke:#ff8a3d,color:#432;
+    classDef garden fill:#ebfff1,stroke:#27ae60,color:#123;
+
+    class A,B,C,E,G,H,I,K,L upstream;
+    class A1,S,D,F,J,Q custom;
+    class M,N,O,P garden;
+```
+
+**说明：** 这里的前置 intake 还不是一个独立发布的 skill；当前主要体现为：
+- `brainstorming` 先做 `Intent Brief + shape lock`
+- `writing-plans` 保留锁定的交付约束
+- `executing-plans` 在执行路由中继续保持交付边界
+
+## 前置层与交付边界
+
+这一层的重点是：遇到简略但明显带产品形态的请求时，先把它扩写并锁住，而不是偷偷变成更小的内部交付物。
+
+```mermaid
+flowchart LR
+    A["简略 / 产品化请求"] --> B["Intent Brief<br/>显式需求 + 解释后的目标"]
+    B --> C["shape lock<br/>用户 + 入口 + 交互 + 成功标准"]
+    C --> D["Reviewed spec<br/>brainstorming"]
+    D --> E["Executable plan<br/>交付约束 + 路由元数据"]
+    E --> F["Routed execution<br/>继续保持交付边界"]
+```
+
 ### 1. `project-landscape-analysis`
 
 作用：
@@ -79,6 +141,7 @@ better-sp 不是脱离 [obra/superpowers](https://github.com/obra/superpowers) �
 - 它是内部调度器，不是用户菜单
 - 真正阻塞前，不应该默认先 `wait`
 - 一旦运行期发现 write scope 和计划不一致，应当重路由，而不是硬执行原计划
+- 路由不是缩小已经锁定交付边界的借口
 
 ---
 
