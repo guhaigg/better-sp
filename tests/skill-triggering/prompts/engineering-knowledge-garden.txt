@@ -1,0 +1,1 @@
+We keep relearning the same auth and deployment lessons, and dumping them into AGENTS.md is polluting context. I want a searchable place to look up proven patterns and pitfalls, capture durable lessons after real work, and prune stale entries later.

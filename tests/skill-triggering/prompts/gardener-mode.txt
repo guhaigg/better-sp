@@ -1,0 +1,1 @@
+Our engineering knowledge garden is starting to accumulate stale and overlapping entries. I want a separate maintenance pass that validates entries, audits duplicates, and prepares reviewable cleanup changes without slowing down normal feature work.

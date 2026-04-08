@@ -12,7 +12,7 @@ Dispatch superpowers:code-reviewer subagent to catch issues before they cascade.
 ## When to Request Review
 
 **Mandatory:**
-- After each task in subagent-driven development
+- After each task in subagent-driven development that selected an external review level
 - After completing major feature
 - Before merge to main
 
@@ -39,12 +39,16 @@ Use Task tool with superpowers:code-reviewer type, fill template at `code-review
 - `{BASE_SHA}` - Starting commit
 - `{HEAD_SHA}` - Ending commit
 - `{DESCRIPTION}` - Brief summary
+- `{CHANGED_FILES}` - Explicit files or modules in scope
+- `{OUT_OF_SCOPE}` - Unrelated debt or files reviewer should ignore
 
 **3. Act on feedback:**
 - Fix Critical issues immediately
 - Fix Important issues before proceeding
 - Note Minor issues for later
 - Push back if reviewer is wrong (with reasoning)
+
+**Optional bounded input:** If the subsystem has relevant pitfalls or verification recipes in `superpowers:engineering-knowledge-garden`, include only those specific entries in the review scope.
 
 ## Example
 
@@ -77,7 +81,7 @@ You: [Fix progress indicators]
 ## Integration with Workflows
 
 **Subagent-Driven Development:**
-- Review after EACH task
+- Review after each task that needs external review
 - Catch issues before they compound
 - Fix before moving to next task
 
@@ -93,6 +97,7 @@ You: [Fix progress indicators]
 
 **Never:**
 - Skip review because "it's simple"
+- Turn review into open-ended repo exploration
 - Ignore Critical issues
 - Proceed with unfixed Important issues
 - Argue with valid technical feedback

@@ -1,0 +1,39 @@
+flowchart TB
+    A["用户请求"] --> A1["前置 intake\nIntent Brief + shape lock"]
+    A1 --> R{"要不要先看\n外部参考？"}
+    R -->|"要"| S["project-landscape-analysis"]
+    R -->|"不要"| B{"当前是哪类\n工作？"}
+    S --> B
+    B -->|"行为 / 产品\n形态不清晰"| C["brainstorming\nreviewed spec"]
+    B -->|"行为冻结但\n结构混乱"| D["refactor-mode\nrefactor brief"]
+    B -->|"已足够明确"| E["writing-plans\n交付约束 + 路由元数据"]
+    C --> E
+    D --> E
+    E --> F["executing-plans\n唯一执行入口"]
+    F --> G["direct"]
+    F --> H["只读 sidecar"]
+    F --> I["parallel writers"]
+    F --> J["high-assurance serial\n1 writer + readers"]
+    G --> K["requesting-code-review"]
+    H --> K
+    I --> K
+    J --> K
+    K --> L["finishing-a-development-branch"]
+    L --> M["engineering-knowledge-garden"]
+    S --> N["archive brief"]
+    N --> O["guidance brief"]
+    O --> C
+    O --> E
+    M --> P["distilled evergreen entries"]
+    P --> E
+    P --> F
+    P --> K
+    Q["gardener-mode"] --> M
+
+    classDef upstream fill:#E8F1FF,stroke:#4F7CFF,color:#123,stroke-width:2px;
+    classDef custom fill:#FFF1E8,stroke:#FF8A3D,color:#432,stroke-width:2px;
+    classDef garden fill:#EBFFF1,stroke:#27AE60,color:#123,stroke-width:2px;
+
+    class A,B,C,E,G,H,I,K,L upstream;
+    class A1,S,D,F,J,Q custom;
+    class M,N,O,P garden;

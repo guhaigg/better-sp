@@ -1,0 +1,39 @@
+flowchart TB
+    A["User request"] --> A1["Front-layer intake\nIntent Brief + shape lock"]
+    A1 --> R{"Need outside\nreferences first?"}
+    R -->|"Yes"| S["project-landscape-analysis"]
+    R -->|"No"| B{"What kind of\nwork is this?"}
+    S --> B
+    B -->|"Behavior / product\nshape unclear"| C["brainstorming\nreviewed spec"]
+    B -->|"Behavior frozen but\nstructure messy"| D["refactor-mode\nrefactor brief"]
+    B -->|"Already clear enough"| E["writing-plans\ndelivery constraints + routing metadata"]
+    C --> E
+    D --> E
+    E --> F["executing-plans\nsingle execution entry"]
+    F --> G["direct"]
+    F --> H["read-only sidecar"]
+    F --> I["parallel writers"]
+    F --> J["high-assurance serial\n1 writer + readers"]
+    G --> K["requesting-code-review"]
+    H --> K
+    I --> K
+    J --> K
+    K --> L["finishing-a-development-branch"]
+    L --> M["engineering-knowledge-garden"]
+    S --> N["archive brief"]
+    N --> O["guidance brief"]
+    O --> C
+    O --> E
+    M --> P["distilled evergreen entries"]
+    P --> E
+    P --> F
+    P --> K
+    Q["gardener-mode"] --> M
+
+    classDef upstream fill:#E8F1FF,stroke:#4F7CFF,color:#123,stroke-width:2px;
+    classDef custom fill:#FFF1E8,stroke:#FF8A3D,color:#432,stroke-width:2px;
+    classDef garden fill:#EBFFF1,stroke:#27AE60,color:#123,stroke-width:2px;
+
+    class A,B,C,E,G,H,I,K,L upstream;
+    class A1,S,D,F,J,Q custom;
+    class M,N,O,P garden;
