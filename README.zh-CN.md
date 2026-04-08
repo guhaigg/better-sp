@@ -47,47 +47,11 @@
 - **橙色**：better-sp 强化或新增的关键节点
 - **绿色**：我们新增的知识沉淀闭环
 
-```mermaid
-flowchart TD
-    A["用户请求"] --> A1["前置 intake<br/>Intent Brief + shape lock"]
-    A1 --> R{"要不要先看外部参考？"}
-    R -- "要" --> S["project-landscape-analysis"]
-    R -- "不要" --> B{"当前是哪类工作？"}
-    S --> B
-    B -- "行为 / 产品形态不清晰" --> C["brainstorming<br/>reviewed spec"]
-    B -- "行为冻结但结构混乱" --> D["refactor-mode<br/>refactor brief"]
-    B -- "已足够明确" --> E["writing-plans<br/>交付约束 + 路由元数据"]
-    C --> E
-    D --> E
-    E --> F["executing-plans<br/>唯一执行入口"]
-    F --> G["direct"]
-    F --> H["只读 sidecar"]
-    F --> I["parallel writers"]
-    F --> J["high-assurance serial<br/>1 writer + readers"]
-    G --> K["requesting-code-review"]
-    H --> K
-    I --> K
-    J --> K
-    K --> L["finishing-a-development-branch"]
-    L --> M["engineering-knowledge-garden"]
-    S --> N["archive brief"]
-    N --> O["guidance brief"]
-    O --> C
-    O --> E
-    M --> P["distilled evergreen entries"]
-    P --> E
-    P --> F
-    P --> K
-    Q["gardener-mode"] --> M
+[![Better SP 流程图（Figma 重绘版）](./docs/assets/better-sp-workflow-map.zh-CN.png)](https://www.figma.com/online-whiteboard/create-diagram/49b8e383-5e08-4494-bd47-d090a5210e96?utm_source=other&utm_content=edit_in_figjam&oai_id=&request_id=7261b542-a62b-4885-aa0a-5334f5240591)
 
-    classDef upstream fill:#e8f1ff,stroke:#4f7cff,color:#123;
-    classDef custom fill:#fff1e8,stroke:#ff8a3d,color:#432;
-    classDef garden fill:#ebfff1,stroke:#27ae60,color:#123;
-
-    class A,B,C,E,G,H,I,K,L upstream;
-    class A1,S,D,F,J,Q custom;
-    class M,N,O,P garden;
-```
+- 可编辑 Figma：<https://www.figma.com/online-whiteboard/create-diagram/49b8e383-5e08-4494-bd47-d090a5210e96?utm_source=other&utm_content=edit_in_figjam&oai_id=&request_id=7261b542-a62b-4885-aa0a-5334f5240591>
+- 本地 PNG：`docs/assets/better-sp-workflow-map.zh-CN.png`
+- 图源：`docs/assets/better-sp-workflow-map.zh-CN.mmd`
 
 **说明：** 这里的“前置 intake”还不是一个独立发布出来的新 skill。在当前分支里，它主要体现为：
 - `brainstorming` 先做 `Intent Brief + shape lock`

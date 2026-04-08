@@ -1,0 +1,23 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Inter, Segoe UI, Microsoft YaHei, PingFang SC, Arial",
+    "primaryTextColor": "#0F172A",
+    "lineColor": "#94A3B8",
+    "textColor": "#0F172A",
+    "mainBkg": "#FFFFFF",
+    "clusterBkg": "#F8FAFC",
+    "clusterBorder": "#CBD5E1",
+    "tertiaryColor": "#F8FAFC",
+    "fontSize": "18px"
+  },
+  "flowchart": {
+    "htmlLabels": true,
+    "curve": "basis",
+    "nodeSpacing": 38,
+    "rankSpacing": 45,
+    "diagramPadding": 24,
+    "useMaxWidth": false
+  },
+  "backgroundColor": "#FFFFFF"
+}

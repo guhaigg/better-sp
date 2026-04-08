@@ -46,47 +46,11 @@ Legend:
 - **Orange**: better-sp custom or materially strengthened node
 - **Green**: knowledge-garden loop introduced in this fork
 
-```mermaid
-flowchart TD
-    A["User request"] --> A1["front-layer intake<br/>Intent Brief + shape lock"]
-    A1 --> R{"Need outside references first?"}
-    R -- "Yes" --> S["project-landscape-analysis"]
-    R -- "No" --> B{"What kind of work is this?"}
-    S --> B
-    B -- "Behavior / product shape unclear" --> C["brainstorming<br/>reviewed spec"]
-    B -- "Behavior frozen but structure messy" --> D["refactor-mode<br/>refactor brief"]
-    B -- "Already clear enough" --> E["writing-plans<br/>delivery constraints + routing metadata"]
-    C --> E
-    D --> E
-    E --> F["executing-plans<br/>single execution entry"]
-    F --> G["direct"]
-    F --> H["read-only sidecar"]
-    F --> I["parallel writers"]
-    F --> J["high-assurance serial<br/>1 writer + readers"]
-    G --> K["requesting-code-review"]
-    H --> K
-    I --> K
-    J --> K
-    K --> L["finishing-a-development-branch"]
-    L --> M["engineering-knowledge-garden"]
-    S --> N["archive brief"]
-    N --> O["guidance brief"]
-    O --> C
-    O --> E
-    M --> P["distilled evergreen entries"]
-    P --> E
-    P --> F
-    P --> K
-    Q["gardener-mode"] --> M
+[![Better SP workflow map (Figma redraw)](./docs/assets/better-sp-workflow-map.en.png)](https://www.figma.com/online-whiteboard/create-diagram/7392bef2-a20d-40e2-8899-27ae63f5c500?utm_source=other&utm_content=edit_in_figjam&oai_id=&request_id=5e1a08f9-d450-4f0a-b386-c8fa682f60cc)
 
-    classDef upstream fill:#e8f1ff,stroke:#4f7cff,color:#123;
-    classDef custom fill:#fff1e8,stroke:#ff8a3d,color:#432;
-    classDef garden fill:#ebfff1,stroke:#27ae60,color:#123;
-
-    class A,B,C,E,G,H,I,K,L upstream;
-    class A1,S,D,F,J,Q custom;
-    class M,N,O,P garden;
-```
+- Editable Figma: <https://www.figma.com/online-whiteboard/create-diagram/7392bef2-a20d-40e2-8899-27ae63f5c500?utm_source=other&utm_content=edit_in_figjam&oai_id=&request_id=5e1a08f9-d450-4f0a-b386-c8fa682f60cc>
+- Local PNG: `docs/assets/better-sp-workflow-map.en.png`
+- Diagram source: `docs/assets/better-sp-workflow-map.en.mmd`
 
 **Note:** the “front-layer intake” is not a separate published skill yet. In this branch it is mainly embodied by:
 - `brainstorming` starting with `Intent Brief + shape lock`
